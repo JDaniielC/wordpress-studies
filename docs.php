@@ -5,9 +5,8 @@ Template Name: Import Json Docs
 
 function import_property_to_wordpress($property_data)
 {
-  error_log('Iniciando importação de propriedade: ' . print_r($property_data, true));
+  error_log('Iniciando importação de propriedade: ');
 
-  // Verificar se os dados necessários estão presentes
   $required_fields = ['property_title', 'property_description', 'property_price', 'property_area', 'property_land', 'property_rooms', 'property_bathrooms', 'property_bedrooms', 'property_garage', 'property_garage_size', 'property_address', 'property_country', 'property_city', 'property_district', 'property_neighborhood', 'property_zip'];
 
   foreach ($required_fields as $field) {
@@ -28,8 +27,6 @@ function import_property_to_wordpress($property_data)
     'post_type'     => 'property'
   );
 
-  error_log('Dados do post preparados: ' . print_r($post_data, true));
-
   // Insert the post into the database
   $post_id = wp_insert_post($post_data);
 
@@ -40,8 +37,6 @@ function import_property_to_wordpress($property_data)
       'message' => 'Failed to create property post: ' . $post_id->get_error_message()
     );
   }
-
-  error_log('Post criado com sucesso. ID: ' . $post_id);
 
   // Price related fields
   $price_data = array(
@@ -86,7 +81,7 @@ function import_property_to_wordpress($property_data)
   // Update all meta fields
   foreach (array_merge($price_data, $details_data, $location_data, $media_data) as $key => $value) {
     if (!empty($value)) {
-      update_post_meta($post_id, ERE_METABOX_PREFIX . $key, $value);
+      $res = update_post_meta($post_id, ERE_METABOX_PREFIX . $key, $value);
     }
   }
 
@@ -96,7 +91,8 @@ function import_property_to_wordpress($property_data)
       'location' => $property_data['lat'] . ',' . $property_data['lng'],
       'address' => $property_data['property_address']
     );
-    update_post_meta($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
+    $res = update_post_meta($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
+    error_log('Atualizando meta campo: property_location' . $res);
   }
 
   // Set taxonomies
@@ -111,7 +107,8 @@ function import_property_to_wordpress($property_data)
 
   foreach ($taxonomies as $taxonomy => $value) {
     if (!empty($value)) {
-      wp_set_object_terms($post_id, $value, $taxonomy);
+      $res = wp_set_object_terms($post_id, $value, $taxonomy);
+      error_log('Atualizando taxonomia: ' . $res);
     }
   }
 
@@ -122,7 +119,8 @@ function import_property_to_wordpress($property_data)
       // Set the first image as featured image
       $featured_image_id = ere_get_attachment_id($images[0]);
       if ($featured_image_id) {
-        set_post_thumbnail($post_id, $featured_image_id);
+        $res = set_post_thumbnail($post_id, $featured_image_id);
+        error_log('Atualizando featured image: ' . $featured_image_id . ' - Resultado: ' . $res);
       }
     }
   }
@@ -134,7 +132,6 @@ function import_property_to_wordpress($property_data)
   );
 }
 
-// No início do arquivo, antes de qualquer output
 if (isset($_POST['property_data'])) {
   $property_data = json_decode(stripslashes($_POST['property_data']), true);
   $result = import_property_to_wordpress($property_data);
@@ -338,13 +335,11 @@ $hide_property_fields = array(
     function setPropertyData(property = undefined) {
       let property_data = property;
       if (!property) {
-        // Função auxiliar para obter valor seguro do elemento
         const getElementValue = (elementId, defaultValue = '') => {
           const element = document.getElementById(elementId);
           return element ? (element.value || defaultValue) : defaultValue;
         };
 
-        // Função auxiliar para converter string para número
         const parseNumber = (value, defaultValue = 0) => {
           const parsed = parseFloat(value);
           return isNaN(parsed) ? defaultValue : parsed;
@@ -375,9 +370,6 @@ $hide_property_fields = array(
           'property_files': getElementValue('property_attachments', ''),
           'property_video_url': getElementValue('property_video_url', '')
         };
-
-        // Log para debug
-        console.log('Dados da propriedade preparados:', property_data);
       }
 
       return property_data;
@@ -386,7 +378,7 @@ $hide_property_fields = array(
     function importSelectedProperty(propertyData) {
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = window.location.href; // envia para a mesma página
+      form.action = window.location.href;
 
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -493,12 +485,10 @@ $hide_property_fields = array(
       });
 
       document.getElementById('import-all-properties').addEventListener('click', function() {
-        // for (let i = 0; i < rowData.length; i++) {
-        //   const property = rowData[i];
-        //   importSelectedProperty(property);
-        // }
-        // Test:
-        importSelectedProperty(rowData[0]);
+        for (let i = 0; i < rowData.length; i++) {
+          const property = rowData[i];
+          importSelectedProperty(property);
+        }
       });
 
       document.getElementById('import-selected-property').addEventListener('click', function() {
