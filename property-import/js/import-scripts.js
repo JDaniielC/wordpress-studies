@@ -182,11 +182,44 @@ function convertXmlToJson(xmlData) {
   return { Row: properties };
 }
 
+function formatJsonData(jsonData) {
+  const formattedData = {
+    Row: jsonData.Row.map(property => ({
+      id: String(property.id) || "",
+      property_title: String(property.property_title) || "",
+      property_type: String(property.property_type) || "",
+      property_status: String(property.property_status) || "",
+      property_label: String(property.property_label) || "",
+      property_country: String(property.property_country) || "",
+      property_district: String(property.property_district) || "",
+      property_city: String(property.property_city) || "",
+      property_neighborhood: String(property.property_neighborhood) || "",
+      property_zip: String(property.property_zip) || "",
+      property_price: parseFloat(property.property_price) || 0,
+      property_area: parseFloat(property.property_area) || 0,
+      property_land: parseFloat(property.property_land) || 0,
+      property_rooms: parseFloat(property.property_rooms) || 0,
+      property_bathrooms: parseFloat(property.property_bathrooms) || 0,
+      property_garage: parseFloat(property.property_garage) || 0,
+      property_address: String(property.property_address) || "",
+      property_bedrooms: parseFloat(property.property_bedrooms) || 0,
+      property_garage_size: parseFloat(property.property_garage_size) || 0,
+      property_description: formatDescription(String(property.property_description)) || "",
+      property_images: String(property.property_images) || "",
+      property_files: String(property.property_files) || "",
+      property_video_url: transformYoutubeUrl(String(property.property_video_url)) || "",
+      agent: String(property.agent) || "",
+    })),
+  };
+  return formattedData;
+}
+
 function readFile(data, fileType) {
   if (fileType === "application/xml" || fileType === "text/xml") {
     data = convertXmlToJson(data);
   } else if (fileType === "application/json") {
     data = JSON.parse(data); 
+    data = formatJsonData(data);
   } else {
     alert("Please upload a JSON or XML file");
     return;
