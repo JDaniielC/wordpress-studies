@@ -205,12 +205,25 @@ function readFile(data, fileType) {
   }
 }
 
+function hidePropertiesSelection() {
+  const buttonSection = document.querySelector("#properties_selection");
+  if (buttonSection.style.display === "none") {
+    buttonSection.style.display = "flex";
+    this.textContent = "Hide Properties Selection";
+  } else {
+    buttonSection.style.display = "none";
+    this.textContent = "Show Properties Selection";
+  }
+}
+
 function selectProperty(propertyData) {
   const buttons = document.getElementsByClassName("property-select-btn");
   Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
   event?.target?.classList.add("selected");
 
   document.getElementById("ere_property_form").style.display = "block";
+
+  hidePropertiesSelection();
 
   const fieldMapping = {
     property_title: propertyData.property_title,
@@ -590,13 +603,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("hide_properties_selection")
     .addEventListener("click", function () {
-      const buttonSection = document.querySelector("#properties_selection");
-      if (buttonSection.style.display === "none") {
-        buttonSection.style.display = "flex";
-        this.textContent = "Hide Properties Selection";
-      } else {
-        buttonSection.style.display = "none";
-        this.textContent = "Show Properties Selection";
-      }
+      hidePropertiesSelection();
     });
 });
