@@ -1,85 +1,261 @@
 let rowData = [];
 
+function formatDescription(text) {
+  if (!text) {
+    return "";
+  }
+
+  // Remove referências (Ref.: XXXX) e (Ref. XXXX)
+  text = text.replace(/Ref\.?\:?\s*\d+\_?\w*/g, "");
+
+  // Corrige espaços entre números e palavras
+  text = text.replace(/(\d)([A-Za-z])/g, "$1 $2");
+
+  // Adiciona quebra de linha após pontos finais seguidos de maiúsculas
+  text = text.replace(/\.(\s*)([A-Z])/g, ".\n\n$2");
+
+  // Trata listas de características
+  text = text.replace(
+    /Características\s*Principais\s*:/g,
+    "\n\nCaracterísticas Principais:\n"
+  );
+
+  // Processa a lista de características
+  text = text.replace(
+    /(Características Principais:)\s*(.*?)\.(?=\s*[A-Z]|\s*$)/gs,
+    (match, prefix, items) => {
+      const formattedItems = items
+        .split(";")
+        .map((item) => item.trim())
+        .filter((item) => item)
+        .map((item) => `\n• ${item}`);
+      return `${prefix}\n${formattedItems.join("\n")}`;
+    }
+  );
+
+  // Adiciona espaço após vírgulas e outros sinais de pontuação
+  text = text.replace(/([,!;:])(?=[^\s])/g, "$1 ");
+
+  // Substitui \" por <b> e </b> para negrito
+  text = text.replace(/"([^"]+)"/g, "<b>$1</b>");
+
+  // Remove (-)
+  text = text.replace(/\(\-\)/g, "");
+
+  // Remove espaços antes de pontuação
+  text = text.replace(/\s+([.,;:])/g, "$1");
+
+  // Trata múltiplos espaços
+  text = text.replace(/\s+/g, " ");
+
+  // Trata múltiplas quebras de linha
+  text = text.replace(/\n\s*\n\s*\n/g, "\n\n");
+
+  // Trata espaços extras no início e fim de cada linha
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line);
+  text = lines.join("\n");
+
+  return text.trim();
+}
+
+function transformYoutubeUrl(url) {
+  if (!url) {
+    return url;
+  }
+  // Transforma URLs do formato v/ para watch?v= e remove o parâmetro rel=0
+  url = url.replace(
+    /youtube\.com\/v\/([^?]+)\?rel=0/,
+    "youtube.com/watch?v=$1"
+  );
+  url = url.replace(/youtube\.com\/v\/([^?]+)/, "youtube.com/watch?v=$1");
+  return url;
+}
+
+function convertToFloat(value) {
+  if (!value || value.trim() === "") {
+    return 0;
+  }
+  const cleanedValue = value.replace(/\./g, "").replace(",", ".");
+  const result = parseFloat(cleanedValue);
+  return isNaN(result) ? 0 : result;
+}
+
+function checkXmlFormat(xmlDoc) {
+  // Verify if XML has correct format
+  const rows = xmlDoc.getElementsByTagName("Row");
+  if (!rows || rows.length === 0) {
+    alert('XML inválido: Nenhum elemento "Row" encontrado');
+    return false;
+  }
+
+  const tags = [
+    "id",
+    "property_type",
+    "property_status",
+    "property_label",
+    "property_area",
+    "property_land",
+    "property_price",
+    "property_address",
+    "property_country",
+    "property_district",
+    "property_city",
+    "property_neighborhood",
+    "property_zip",
+    "property_title",
+    "agent",
+    "property_description",
+  ];
+
+  let presentCount = 0;
+  for (const tag of tags) {
+    if (xmlDoc.getElementsByTagName(tag)[0]) {
+      presentCount++;
+    }
+  }
+
+  if (presentCount > 3) {
+    return true;
+  }
+
+  return false;
+}
+
 function convertXmlToJson(xmlData) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-  const jsonData = JSON.stringify(xmlDoc, null, 2);
-  return jsonData;
+
+  if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+    alert("XML inválido: Erro de parsing");
+    return null;
+  }
+
+  if (checkXmlFormat(xmlDoc)) {
+    const jsonData = JSON.stringify(xmlDoc, null, 2);
+    return jsonData;
+  }
+
+  const properties = [];
+
+  const rows = xmlDoc.getElementsByTagName("Row");
+  for (const property of rows) {
+    const getValue = (tag) => {
+      const element = property.getElementsByTagName(tag)[0];
+      return element ? element.textContent : "";
+    };
+
+    const propertyData = {
+      agent: getValue("Angariador") || getValue("agent") || "",
+      id: getValue("Referencia") || getValue("id") || "",
+      property_city: getValue("Concelho") || getValue("property_city") || "",
+      property_label: getValue("Estado") || getValue("property_label") || "",
+      property_title: getValue("Nome_pt-pt") || getValue("property_title") || "",
+      property_status: getValue("Estado") || getValue("property_status") || "",
+      property_country: getValue("Pais") || getValue("property_country") || "",
+      property_district: getValue("Distrito") || getValue("property_district") || "",
+      property_type: getValue("Natureza") || getValue("property_type") || "",
+      property_neighborhood: getValue("Zona") || getValue("property_neighborhood") || "",
+      property_price: convertToFloat(getValue("Venda") || getValue("property_price")) || 0,
+      property_area: convertToFloat(getValue("Areautil") || getValue("property_area")) || 0,
+      property_land: convertToFloat(getValue("AreaTerreno") || getValue("property_land")) || 0,
+      property_video_url: transformYoutubeUrl(getValue("Linkdovideo") || getValue("property_video_url")) || "",
+      property_description: formatDescription(getValue("Descricao_pt-pt") || getValue("property_description")) || "",
+      property_rooms: convertToFloat(getValue("Salas") || getValue("property_rooms")) || 0,
+      property_bathrooms: convertToFloat(getValue("Banheiros") || getValue("property_bathrooms")) || 0,
+      property_garage: convertToFloat(getValue("Garagem") || getValue("property_garage")) || 0,
+      property_bedrooms: convertToFloat(getValue("Quartos") || getValue("property_bedrooms")) || 0,
+      property_garage_size: convertToFloat(getValue("TamanhoGaragem") || getValue("property_garage_size")) || 0,
+      property_address: getValue("Endereco") || getValue("property_address") || "",
+      property_zip: getValue("Codigopostal") || getValue("property_zip") || "",
+      property_images: (getValue("Linkdaimagem") || getValue("property_images") || "")
+        .split(",")
+        .map((url) => url.trim())
+        .filter(Boolean),
+      property_files: getValue("Linkdaplanta") || getValue("property_files") || "",
+    };
+    properties.push(propertyData);
+  }
+
+  return { Row: properties };
 }
 
 function readFile(data, fileType) {
-  if (fileType === 'application/xml') {
+  if (fileType === "application/xml" || fileType === "text/xml") {
     data = convertXmlToJson(data);
-  } else if (fileType === 'application/json') {
-    data = JSON.parse(data);
-    const isValid = checkJsonData(data);
-    if (isValid) {
-      if (data.Row.length > 1) {
-        const buttonSection = document.querySelector('.property-selection-buttons')
-        buttonSection.style.display = 'flex';
-      } else if (data.Row.length === 1) {
-        selectProperty(data.Row[0]);
-      }
-      rowData = data.Row;
-    }
+  } else if (fileType === "application/json") {
+    data = JSON.parse(data); 
   } else {
-    alert('Please upload a JSON or XML file.');
+    alert("Please upload a JSON or XML file");
+    return;
   }
 
-  return data;
+  if (checkJsonData(data)) {
+    if (data.Row.length > 1) {
+      const buttonSection = document.querySelector(
+        ".property-selection-buttons"
+      );
+      buttonSection.style.display = "flex";
+    } else if (data.Row.length === 1) {
+      selectProperty(data.Row[0]);
+    }
+    rowData = data.Row;
+  }
 }
 
 function selectProperty(propertyData) {
-  const buttons = document.getElementsByClassName('property-select-btn');
-  Array.from(buttons).forEach(btn => btn.classList.remove('selected'));
-  event?.target?.classList.add('selected');
+  const buttons = document.getElementsByClassName("property-select-btn");
+  Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
+  event?.target?.classList.add("selected");
 
-  document.getElementById('ere_property_form').style.display = 'block';
+  document.getElementById("ere_property_form").style.display = "block";
 
   const fieldMapping = {
-    'property_title': propertyData.property_title,
-    'property_des': propertyData.property_description,
-    'property_type': propertyData.property_type,
-    'property_status': propertyData.property_status,
-    'property_label': propertyData.property_label,
-    'property_price_short': propertyData.property_price.toString(),
-    'property_price_unit': '1',
-    'address1': propertyData.property_address,
-    'property_country': propertyData.property_country,
-    'property_city': propertyData.property_city,
-    'administrative_area_level_1': propertyData.property_district,
-    'neighborhood': propertyData.property_neighborhood,
-    'property_zip': propertyData.property_zip,
-    'property_gallery': propertyData.property_images || '',
-    'property_attachments': propertyData.property_files || '',
-    'property_video_url': propertyData.property_video_url || '',
-    'property_size': propertyData.property_area || '',
-    'property_land': propertyData.property_land || '',
-    'property_identity': propertyData.id || '',
-    'property_rooms': propertyData.property_rooms || '',
-    'property_bathrooms': propertyData.property_bathrooms || '',
-    'property_bedrooms': propertyData.property_bedrooms || '',
-    'property_garage': propertyData.property_garage || '',
-    'property_garage_size': propertyData.property_garage_size || '',
+    property_title: propertyData.property_title,
+    property_des: propertyData.property_description,
+    property_type: propertyData.property_type,
+    property_status: propertyData.property_status,
+    property_label: propertyData.property_label,
+    property_price_short: propertyData.property_price.toString(),
+    property_price_unit: "1",
+    address1: propertyData.property_address,
+    property_country: propertyData.property_country,
+    property_city: propertyData.property_city,
+    administrative_area_level_1: propertyData.property_district,
+    neighborhood: propertyData.property_neighborhood,
+    property_zip: propertyData.property_zip,
+    property_gallery: propertyData.property_images || "",
+    property_attachments: propertyData.property_files || "",
+    property_video_url: propertyData.property_video_url || "",
+    property_size: propertyData.property_area || "",
+    property_land: propertyData.property_land || "",
+    property_identity: propertyData.id || "",
+    property_rooms: propertyData.property_rooms || "",
+    property_bathrooms: propertyData.property_bathrooms || "",
+    property_bedrooms: propertyData.property_bedrooms || "",
+    property_garage: propertyData.property_garage || "",
+    property_garage_size: propertyData.property_garage_size || "",
   };
 
   Object.entries(fieldMapping).forEach(([fieldId, value]) => {
     const element = document.getElementById(fieldId);
     if (element) {
-      if (element.tagName === 'SELECT') {
-        const option = Array.from(element.options).find(opt =>
-          opt.text.toLowerCase() === value.toLowerCase()
+      if (element.tagName === "SELECT") {
+        const option = Array.from(element.options).find(
+          (opt) => opt.text.toLowerCase() === value.toLowerCase()
         );
         if (option) {
           option.selected = true;
-          element.dispatchEvent(new Event('change'));
+          element.dispatchEvent(new Event("change"));
         }
-      } else if (element.type === 'checkbox') {
-        element.checked = value === 'true';
+      } else if (element.type === "checkbox") {
+        element.checked = value === "true";
       } else {
-        if (fieldId === 'property_attachments') {
+        if (fieldId === "property_attachments") {
           if (!value) {
-            element.value = '';
+            element.value = "";
           } else {
             element.value = value;
           }
@@ -98,30 +274,26 @@ function checkJsonData(jsonData) {
   }
 
   const requiredTypes = {
-    id: 'string',
-    property_title: 'string',
-    property_type: 'string',
-    property_status: 'string',
-    property_label: 'string',
-    property_area: 'number',
-    property_land: 'number',
-    property_price: 'number',
-    property_address: 'string',
-    property_country: 'string',
-    property_district: 'string',
-    property_city: 'string',
-    property_neighborhood: 'string',
-    property_zip: 'string',
-    agent: 'string',
-    property_description: 'string',
-    property_images: 'string',
-    property_video_url: 'string',
-    property_files: 'string',
-    property_rooms: 'number',
-    property_bathrooms: 'number',
-    property_bedrooms: 'number',
-    property_garage: 'number',
-    property_garage_size: 'number'
+    id: "string",
+    property_title: "string",
+    property_type: "string",
+    property_status: "string",
+    property_label: "string",
+    property_area: "number",
+    property_price: "number",
+    property_address: "string",
+    property_country: "string",
+    property_district: "string",
+    property_city: "string",
+    property_neighborhood: "string",
+    property_zip: "string",
+    agent: "string",
+    property_description: "string",
+    property_rooms: "number",
+    property_bathrooms: "number",
+    property_bedrooms: "number",
+    property_garage: "number",
+    property_garage_size: "number",
   };
 
   for (let i = 0; i < jsonData.Row.length; i++) {
@@ -134,32 +306,31 @@ function checkJsonData(jsonData) {
 
       const actualType = typeof property[field];
 
-      if (type === 'number' && actualType !== 'number') {
+      if (type === "number" && actualType !== "number") {
         alert(`Field "${field}" must be a number in property at index ${i}`);
         return false;
       }
-      if (type === 'string' && actualType !== 'string') {
+      if (type === "string" && actualType !== "string") {
         alert(`Field "${field}" must be a string in property at index ${i}`);
         return false;
       }
 
-      if (field === 'property_video_url') {
-        if (!property[field].includes('youtube.com/v/')) {
-          alert(`Invalid YouTube URL format in property at index ${i}`);
-          return false;
-        }
-      }
-
-      if (type === 'number' && property[field] <= 0) {
-        alert(`Field "${field}" must be a positive number in property at index ${i}`);
+      if (type === "number" && property[field] < 0) {
+        alert(
+          `Field "${field}" must be a positive number in property at index ${i}`
+        );
         return false;
       }
 
-      if (field === 'property_files' || field === 'property_images') {
-        if (property[field] !== '' &&
-          !property[field].includes(',') &&
-          !property[field].match(/^https?:\/\/.+\..+$/)) {
-          alert(`Field "${field}" should be empty or contain valid URL(s) in property at index ${i}`);
+      if (field === "property_files" || field === "property_images") {
+        if (
+          property[field] !== "" &&
+          !property[field].includes(",") &&
+          !property[field].match(/^https?:\/\/.+\..+$/)
+        ) {
+          alert(
+            `Field "${field}" should be empty or contain valid URL(s) in property at index ${i}`
+          );
           return false;
         }
       }
@@ -171,9 +342,9 @@ function checkJsonData(jsonData) {
 function setPropertyData(property = undefined) {
   let property_data = property;
   if (!property) {
-    const getElementValue = (elementId, defaultValue = '') => {
+    const getElementValue = (elementId, defaultValue = "") => {
       const element = document.getElementById(elementId);
-      return element ? (element.value || defaultValue) : defaultValue;
+      return element ? element.value || defaultValue : defaultValue;
     };
 
     const parseNumber = (value, defaultValue = 0) => {
@@ -182,29 +353,32 @@ function setPropertyData(property = undefined) {
     };
 
     property_data = {
-      'id': getElementValue('property_identity', ''),
-      'property_title': getElementValue('property_title', ''),
-      'property_description': getElementValue('property_des', ''),
-      'property_type': getElementValue('property_type', ''),
-      'property_status': getElementValue('property_status', ''),
-      'property_label': getElementValue('property_label', ''),
-      'property_price': parseNumber(getElementValue('property_price_short'), 0),
-      'property_area': parseNumber(getElementValue('property_size'), 0),
-      'property_land': parseNumber(getElementValue('property_land'), 0),
-      'property_rooms': parseNumber(getElementValue('property_rooms'), 0),
-      'property_bathrooms': parseNumber(getElementValue('property_bathrooms'), 0),
-      'property_bedrooms': parseNumber(getElementValue('property_bedrooms'), 0),
-      'property_garage': parseNumber(getElementValue('property_garage'), 0),
-      'property_garage_size': parseNumber(getElementValue('property_garage_size'), 0),
-      'property_address': getElementValue('address1', ''),
-      'property_country': getElementValue('property_country', ''),
-      'property_city': getElementValue('property_city', ''),
-      'property_district': getElementValue('administrative_area_level_1', ''),
-      'property_neighborhood': getElementValue('neighborhood', ''),
-      'property_zip': getElementValue('property_zip', ''),
-      'property_images': getElementValue('property_gallery', ''),
-      'property_files': getElementValue('property_attachments', ''),
-      'property_video_url': getElementValue('property_video_url', '')
+      id: getElementValue("property_identity", ""),
+      property_title: getElementValue("property_title", ""),
+      property_description: getElementValue("property_des", ""),
+      property_type: getElementValue("property_type", ""),
+      property_status: getElementValue("property_status", ""),
+      property_label: getElementValue("property_label", ""),
+      property_price: parseNumber(getElementValue("property_price_short"), 0),
+      property_area: parseNumber(getElementValue("property_size"), 0),
+      property_land: parseNumber(getElementValue("property_land"), 0),
+      property_rooms: parseNumber(getElementValue("property_rooms"), 0),
+      property_bathrooms: parseNumber(getElementValue("property_bathrooms"), 0),
+      property_bedrooms: parseNumber(getElementValue("property_bedrooms"), 0),
+      property_garage: parseNumber(getElementValue("property_garage"), 0),
+      property_garage_size: parseNumber(
+        getElementValue("property_garage_size"),
+        0
+      ),
+      property_address: getElementValue("address1", ""),
+      property_country: getElementValue("property_country", ""),
+      property_city: getElementValue("property_city", ""),
+      property_district: getElementValue("administrative_area_level_1", ""),
+      property_neighborhood: getElementValue("neighborhood", ""),
+      property_zip: getElementValue("property_zip", ""),
+      property_images: getElementValue("property_gallery", ""),
+      property_files: getElementValue("property_attachments", ""),
+      property_video_url: getElementValue("property_video_url", ""),
     };
   }
 
@@ -212,13 +386,13 @@ function setPropertyData(property = undefined) {
 }
 
 function importSelectedProperty(propertyData) {
-  const form = document.createElement('form');
-  form.method = 'POST';
+  const form = document.createElement("form");
+  form.method = "POST";
   form.action = window.location.href;
 
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'property_data';
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = "property_data";
   input.value = JSON.stringify(propertyData);
 
   form.appendChild(input);
@@ -226,133 +400,154 @@ function importSelectedProperty(propertyData) {
   form.submit();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('ere_select_json_file').addEventListener('click', function() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json, .xml';
+document.addEventListener("DOMContentLoaded", function () {
+  document
+    .getElementById("ere_select_json_file")
+    .addEventListener("click", function () {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json, .xml";
 
-    input.onchange = function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
+      input.onchange = function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
 
-        reader.onload = function(e) {
-          const fileType = file.type;
-          let data = e.target.result;
-          readFile(data, fileType);
-        };
+          reader.onload = function (e) {
+            const fileType = file.type;
+            let data = e.target.result;
+            readFile(data, fileType);
+          };
 
-        reader.readAsText(file);
-      }
-    };
+          reader.readAsText(file);
+        }
+      };
 
-    input.click();
-  });
+      input.click();
+    });
 
-  const dropZone = document.getElementById('ere_gallery_plupload_container');
+  const dropZone = document.getElementById("ere_gallery_plupload_container");
 
-  dropZone.addEventListener('dragover', function(e) {
+  dropZone.addEventListener("dragover", function (e) {
     e.preventDefault();
     e.stopPropagation();
-    this.classList.add('dragover');
+    this.classList.add("dragover");
   });
 
-  dropZone.addEventListener('dragleave', function(e) {
+  dropZone.addEventListener("dragleave", function (e) {
     e.preventDefault();
     e.stopPropagation();
-    this.classList.remove('dragover');
+    this.classList.remove("dragover");
   });
 
-  dropZone.addEventListener('drop', function(e) {
+  dropZone.addEventListener("drop", function (e) {
     e.preventDefault();
     e.stopPropagation();
-    this.classList.remove('dragover');
+    this.classList.remove("dragover");
 
     const file = e.dataTransfer.files[0];
     const fileType = file.type;
     let data = e.target.result;
 
-    readFile(data);
+    readFile(data, fileType);
   });
 
-  document.getElementById('download-example-json').addEventListener('click', function() {
-    const example = {
-      "Row": [{
-        "id": "EXAMPLE_001",
-        "property_type": "Apartamento",
-        "property_status": "Disponível",
-        "property_label": "Em construção",
-        "property_area": 100,
-        "property_land": 120,
-        "property_price": 100000,
-        "property_address": "Rua do Exemplo, 123",
-        "property_country": "Portugal",
-        "property_district": "Exemplo",
-        "property_city": "Cidade Exemplo",
-        "property_neighborhood": "Bairro Exemplo",
-        "property_zip": "12345-678",
-        "property_title": "Apartamento T2 Exemplo",
-        "agent": "AGENTE EXEMPLO",
-        "property_description": "Este é um exemplo de descrição do imóvel. Aqui você pode incluir todas as características e detalhes do imóvel. Este texto serve apenas como demonstração do formato necessário...",
-        "property_images": "https://exemplo.com/imagem1.jpg,https://exemplo.com/imagem2.jpg",
-        "property_video_url": "https://www.youtube.com/v/exemplo123",
-        "property_files": "https://exemplo.com/documento1.pdf,https://exemplo.com/documento2.pdf",
-        "property_rooms": 2,
-        "property_bathrooms": 2,
-        "property_bedrooms": 2,
-        "property_garage": 1,
-        "property_garage_size": 20
-      }]
-    };
+  document
+    .getElementById("download-example-json")
+    .addEventListener("click", function () {
+      const example = {
+        Row: [
+          {
+            id: "EXAMPLE_001",
+            property_type: "Apartamento",
+            property_status: "Disponível",
+            property_label: "Em construção",
+            property_area: 100,
+            property_land: 120,
+            property_price: 100000,
+            property_address: "Rua do Exemplo, 123",
+            property_country: "Portugal",
+            property_district: "Exemplo",
+            property_city: "Cidade Exemplo",
+            property_neighborhood: "Bairro Exemplo",
+            property_zip: "12345-678",
+            property_title: "Apartamento T2 Exemplo",
+            agent: "AGENTE EXEMPLO",
+            property_description:
+              "Este é um exemplo de descrição do imóvel. Aqui você pode incluir todas as características e detalhes do imóvel. Este texto serve apenas como demonstração do formato necessário...",
+            property_images:
+              "https://exemplo.com/imagem1.jpg,https://exemplo.com/imagem2.jpg",
+            property_video_url: "https://www.youtube.com/v/exemplo123",
+            property_files:
+              "https://exemplo.com/documento1.pdf,https://exemplo.com/documento2.pdf",
+            property_rooms: 2,
+            property_bathrooms: 2,
+            property_bedrooms: 2,
+            property_garage: 1,
+            property_garage_size: 20,
+          },
+        ],
+      };
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(example, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "example.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  });
-
-  document.getElementById('ere_submit_property').addEventListener('click', function() {
-    const property_data = setPropertyData();
-    importSelectedProperty(property_data);
-  });
-
-  document.getElementById('import-all-properties').addEventListener('click', function() {
-    for (let i = 0; i < rowData.length; i++) {
-      const property = rowData[i];
-      importSelectedProperty(property);
-    }
-  });
-
-  document.getElementById('import-selected-property').addEventListener('click', function() {
-    const hideSection = document.querySelector('#hide_properties_selection')
-    hideSection.textContent = 'Hide Properties Selection';
-    hideSection.style.display = 'block';
-
-    const buttonSection = document.querySelector('#properties_selection')
-    buttonSection.innerHTML = '';
-    const selectorDiv = document.createElement('div');
-    selectorDiv.className = 'row-selector';
-
-    const label = document.createElement('h4');
-    label.textContent = 'Select Property to Import:';
-    selectorDiv.appendChild(label);
-
-    rowData.forEach((row, index) => {
-      const button = document.createElement('button');
-      button.className = 'btn btn-secondary property-select-btn';
-      button.textContent = `${index + 1}. ${row.property_title} (ID: ${row.id})`;
-      button.onclick = () => selectProperty(rowData[index]);
-      selectorDiv.appendChild(button);
+      const dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(example, null, 2));
+      const downloadAnchorNode = document.createElement("a");
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "example.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
     });
-    buttonSection.appendChild(selectorDiv);
-  });
 
-  document.getElementById('download-example-xml').addEventListener('click', function() {
-    const xmlContent = `
+  document
+    .getElementById("ere_submit_property")
+    .addEventListener("click", function () {
+      const property_data = setPropertyData();
+      importSelectedProperty(property_data);
+    });
+
+  document
+    .getElementById("import-all-properties")
+    .addEventListener("click", function () {
+      for (let i = 0; i < rowData.length; i++) {
+        const property = rowData[i];
+        importSelectedProperty(property);
+      }
+    });
+
+  document
+    .getElementById("import-selected-property")
+    .addEventListener("click", function () {
+      const hideSection = document.querySelector("#hide_properties_selection");
+      hideSection.textContent = "Hide Properties Selection";
+      hideSection.style.display = "block";
+
+      const buttonSection = document.querySelector("#properties_selection");
+      buttonSection.innerHTML = "";
+      const selectorDiv = document.createElement("div");
+      selectorDiv.className = "row-selector";
+
+      const label = document.createElement("h4");
+      label.textContent = "Select Property to Import:";
+      selectorDiv.appendChild(label);
+
+      rowData.forEach((row, index) => {
+        const button = document.createElement("button");
+        button.className = "btn btn-secondary property-select-btn";
+        button.textContent = `${index + 1}. ${row.property_title} (ID: ${
+          row.id
+        })`;
+        button.onclick = () => selectProperty(rowData[index]);
+        selectorDiv.appendChild(button);
+      });
+      buttonSection.appendChild(selectorDiv);
+    });
+
+  document
+    .getElementById("download-example-xml")
+    .addEventListener("click", function () {
+      const xmlContent = `
 <Properties>
   <Row>
     <id>EXAMPLE_001</id>
@@ -382,23 +577,26 @@ document.addEventListener('DOMContentLoaded', function() {
   </Row>
 </Properties>`;
 
-    const dataStr = "data:text/xml;charset=utf-8," + encodeURIComponent(xmlContent);
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "example.xml");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  });
+      const dataStr =
+        "data:text/xml;charset=utf-8," + encodeURIComponent(xmlContent);
+      const downloadAnchorNode = document.createElement("a");
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "example.xml");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    });
 
-  document.getElementById('hide_properties_selection').addEventListener('click', function() {
-    const buttonSection = document.querySelector('#properties_selection')
-    if (buttonSection.style.display === 'none') {
-      buttonSection.style.display = 'flex';
-      this.textContent = 'Hide Properties Selection';
-    } else {
-      buttonSection.style.display = 'none';
-      this.textContent = 'Show Properties Selection';
-    }
-  });
-}); 
+  document
+    .getElementById("hide_properties_selection")
+    .addEventListener("click", function () {
+      const buttonSection = document.querySelector("#properties_selection");
+      if (buttonSection.style.display === "none") {
+        buttonSection.style.display = "flex";
+        this.textContent = "Hide Properties Selection";
+      } else {
+        buttonSection.style.display = "none";
+        this.textContent = "Show Properties Selection";
+      }
+    });
+});

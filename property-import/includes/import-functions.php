@@ -6,35 +6,6 @@
 function import_property_to_wordpress($property_data) {
   error_log('Iniciando importação de propriedade: ');
 
-  $required_fields = [
-    'property_title', 
-    'property_description', 
-    'property_price', 
-    'property_area', 
-    'property_land', 
-    'property_rooms', 
-    'property_bathrooms', 
-    'property_bedrooms', 
-    'property_garage', 
-    'property_garage_size', 
-    'property_address', 
-    'property_country', 
-    'property_city', 
-    'property_district', 
-    'property_neighborhood', 
-    'property_zip'
-  ];
-
-  foreach ($required_fields as $field) {
-    if (!isset($property_data[$field])) {
-      error_log('Campo obrigatório não encontrado: ' . $field);
-      return array(
-        'success' => false,
-        'message' => 'Campo obrigatório não encontrado: ' . $field
-      );
-    }
-  }
-
   // Create post array
   $post_data = array(
     'post_title'    => wp_strip_all_tags($property_data['property_title']),
