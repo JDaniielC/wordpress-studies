@@ -1,9 +1,11 @@
 <?php
+
 /**
  * Funções para importação de propriedades
  */
 
-function import_property_to_wordpress($property_data) {
+function import_property_to_wordpress($property_data)
+{
   error_log('Iniciando importação de propriedade: ');
 
   // Create post array
@@ -78,7 +80,7 @@ function import_property_to_wordpress($property_data) {
       'location' => $property_data['lat'] . ',' . $property_data['lng'],
       'address' => $property_data['property_address']
     );
-    $res = update_post_meta($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
+    $res = data($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
     error_log('Atualizando meta campo: property_location' . $res);
   }
 
@@ -117,4 +119,69 @@ function import_property_to_wordpress($property_data) {
     'post_id' => $post_id,
     'message' => 'Property imported successfully'
   );
-} 
+}
+
+enum PropertyAttribute
+{
+  case property_address;
+  case property_city;
+  case property_state;
+  case property_neighborhood;
+  case property_status;
+  case property_type;
+  case property_label;
+}
+
+/**
+ * Inserts missing property post meta values
+ * 
+ * @param PropertyAttribute $property_attribute
+ * @param array $data Array of strings containing meta values to check and insert
+ * @return void
+ */
+function insert_mission_property_post_meta($property_attribute, $data)
+{
+  // Get posts with the specified meta
+  $posts = get_posts(array(
+    'post_type' => 'property',
+    'numberposts' => -1,
+    'meta_query' => array(
+      array(
+        'key' => $property_attribute,
+        'value' => $data,
+        'compare' => '='
+      )
+    )
+  ));
+
+  $taxonomies = array();
+
+  foreach ($posts as $post) {
+    $post_taxonomies = get_object_taxonomies($post->post_type);
+
+    foreach ($post_taxonomies as $taxonomy) {
+      $terms = wp_get_post_terms($post->ID, $taxonomy);
+
+      if (!empty($terms) && !is_wp_error($terms)) {
+        if (!isset($taxonomies[$taxonomy])) {
+          $taxonomies[$taxonomy] = array();
+        }
+
+        foreach ($terms as $term) {
+          $taxonomies[$taxonomy][$term->term_id] = $term->name;
+        }
+      }
+    }
+  }
+
+  // Compare $taxonomies with $data
+  foreach ($taxonomies as $taxonomy => $terms) {
+    foreach ($terms as $term_id => $term_name) {
+      if (!in_array($term_name, $data)) {
+        wp_set_object_terms($post->ID, $term_name, $taxonomy, true);
+      }
+    }
+  }
+
+  return "Inserted " . count($taxonomies) . " taxonomies";
+}
