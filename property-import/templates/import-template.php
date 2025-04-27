@@ -172,8 +172,8 @@ $hide_property_fields = array(
     G5ERE()->get_template("property/submit-property/price.php");
     G5ERE()->get_template("property/submit-property/location.php");
     G5ERE()->get_template("property/submit-property/details.php");
-    G5ERE()->get_template("property/submit-property/features.php");
-    G5ERE()->get_template("property/submit-property/media.php");
+    // G5ERE()->get_template("property/submit-property/features.php");
+    // G5ERE()->get_template("property/submit-property/media.php");
     ?>
 
     <input
