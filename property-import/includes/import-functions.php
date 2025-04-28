@@ -70,7 +70,7 @@ function import_property_to_wordpress($property_data)
   // Update all meta fields
   foreach (array_merge($price_data, $details_data, $location_data, $media_data) as $key => $value) {
     if (!empty($value)) {
-      $res = update_post_meta($post_id, ERE_METABOX_PREFIX . $key, $value);
+      update_post_meta($post_id, ERE_METABOX_PREFIX . $key, $value);
     }
   }
 
@@ -80,8 +80,7 @@ function import_property_to_wordpress($property_data)
       'location' => $property_data['lat'] . ',' . $property_data['lng'],
       'address' => $property_data['property_address']
     );
-    $res = data($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
-    error_log('Atualizando meta campo: property_location' . $res);
+    update_post_meta($post_id, ERE_METABOX_PREFIX . 'property_location', $location);
   }
 
   // Set taxonomies
@@ -96,8 +95,7 @@ function import_property_to_wordpress($property_data)
 
   foreach ($taxonomies as $taxonomy => $value) {
     if (!empty($value)) {
-      $res = wp_set_object_terms($post_id, $value, $taxonomy);
-      error_log('Atualizando taxonomia: ' . $res);
+      wp_set_object_terms($post_id, $value, $taxonomy);
     }
   }
 
@@ -108,8 +106,7 @@ function import_property_to_wordpress($property_data)
       // Set the first image as featured image
       $featured_image_id = ere_get_attachment_id($images[0]);
       if ($featured_image_id) {
-        $res = set_post_thumbnail($post_id, $featured_image_id);
-        error_log('Atualizando featured image: ' . $featured_image_id . ' - Resultado: ' . $res);
+        set_post_thumbnail($post_id, $featured_image_id);
       }
     }
   }
