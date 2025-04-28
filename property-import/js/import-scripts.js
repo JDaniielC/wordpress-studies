@@ -389,43 +389,55 @@ function checkJsonData(jsonData) {
 function setPropertyData(property = undefined) {
   let property_data = property;
   if (!property) {
-    const getElementValue = (elementId, defaultValue = "") => {
+    const getElementValue = (elementId) => {
       const element = document.getElementById(elementId);
-      return element ? element.value || defaultValue : defaultValue;
+      return element ? element.value : "";
     };
 
-    const parseNumber = (value, defaultValue = 0) => {
-      const parsed = parseFloat(value);
-      return isNaN(parsed) ? defaultValue : parsed;
+    const getElementNumberValue = (elementId) => {
+      let element = document.getElementById(elementId);
+      element = element ? parseFloat(element.value || 0) : 0;
+      return isNaN(element) ? 0 : element;
+    };
+
+    const getSlug = (value) => {
+      let slug = value.replace(' ', '-');
+      slug = slug.toLowerCase();
+      slug = slug.replace(/[^a-z0-9-]/g, '');
+      return slug;
+    };
+
+    // Get the option label from the select element
+    const getOptionLabel = (elementId) => {
+      const element = document.getElementById(elementId);
+      const option = element ? element.options[element.selectedIndex].text : "";
+      return getSlug(option);
     };
 
     property_data = {
-      id: getElementValue("property_identity", ""),
-      property_title: getElementValue("property_title", ""),
-      property_description: getElementValue("property_des", ""),
-      property_type: getElementValue("property_type", ""),
-      property_status: getElementValue("property_status", ""),
-      property_label: getElementValue("property_label", ""),
-      property_price: parseNumber(getElementValue("property_price_short"), 0),
-      property_area: parseNumber(getElementValue("property_size"), 0),
-      property_land: parseNumber(getElementValue("property_land"), 0),
-      property_rooms: parseNumber(getElementValue("property_rooms"), 0),
-      property_bathrooms: parseNumber(getElementValue("property_bathrooms"), 0),
-      property_bedrooms: parseNumber(getElementValue("property_bedrooms"), 0),
-      property_garage: parseNumber(getElementValue("property_garage"), 0),
-      property_garage_size: parseNumber(
-        getElementValue("property_garage_size"),
-        0
-      ),
-      property_address: getElementValue("address1", ""),
-      property_country: getElementValue("property_country", ""),
-      property_city: getElementValue("property_city", ""),
-      property_district: getElementValue("administrative_area_level_1", ""),
-      property_neighborhood: getElementValue("neighborhood", ""),
-      property_zip: getElementValue("property_zip", ""),
-      property_images: getElementValue("property_gallery", ""),
-      property_files: getElementValue("property_attachments", ""),
-      property_video_url: getElementValue("property_video_url", ""),
+      id: getElementValue("property_identity"),
+      property_title: getElementValue("property_title"),
+      property_description: getElementValue("property_des"),
+      property_type: getOptionLabel("property_type"),
+      property_status: getOptionLabel("property_status"),
+      property_label: getOptionLabel("property_label"),
+      property_price: getElementNumberValue("property_price_short"),
+      property_area: getElementNumberValue("property_size"),
+      property_land: getElementNumberValue("property_land"),
+      property_rooms: getElementNumberValue("property_rooms"),
+      property_bathrooms: getElementNumberValue("property_bathrooms"),
+      property_bedrooms: getElementNumberValue("property_bedrooms"),
+      property_garage: getElementNumberValue("property_garage"),
+      property_garage_size: getElementNumberValue("property_garage_size"),
+      property_address: getElementValue("address1"),
+      property_country: getOptionLabel("property_country"),
+      property_city: getOptionLabel("city"),
+      property_district: getOptionLabel("administrative_area_level_1"),
+      property_neighborhood: getOptionLabel("neighborhood"),
+      property_zip: getElementValue("property_zip"),
+      property_images: getElementValue("property_gallery"),
+      property_files: getElementValue("property_attachments"),
+      property_video_url: getElementValue("property_video_url"),
     };
   }
 
