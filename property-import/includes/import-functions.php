@@ -136,9 +136,9 @@ function get_all_property_identity_from_database()
   " );
 }
 
-enum PropertyAttribute
+
+enum PropertyTaxonomy
 {
-  case property_address;
   case property_city;
   case property_state;
   case property_neighborhood;
@@ -148,55 +148,49 @@ enum PropertyAttribute
 }
 
 /**
- * Inserts missing property post meta values
+ * Get all property_attribute from database
  * 
- * @param PropertyAttribute $property_attribute
- * @param array $data Array of strings containing meta values to check and insert
- * @return void
+ * @param PropertyTaxonomy $property_taxonomy
+ * @return array
  */
-function insert_mission_property_post_meta($property_attribute, $data)
+function get_all_property_taxonomy_from_database($property_taxonomy)
 {
-  // Get posts with the specified meta
-  $posts = get_posts(array(
-    'post_type' => 'property',
-    'numberposts' => -1,
-    'meta_query' => array(
-      array(
-        'key' => $property_attribute,
-        'value' => $data,
-        'compare' => '='
-      )
-    )
-  ));
+  global $wpdb;
+  if (is_object($property_taxonomy) && property_exists($property_taxonomy, 'name')) {
+    $property_taxonomy = $property_taxonomy->name;
+    $property_taxonomy = str_replace('_', '-', $property_taxonomy);
+  }
 
-  $taxonomies = array();
+  return $wpdb->get_col( "
+      SELECT t.name
+      FROM {$wpdb->terms} t
+      INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
+      WHERE tt.taxonomy = '$property_taxonomy'
+  " );
+}
 
-  foreach ($posts as $post) {
-    $post_taxonomies = get_object_taxonomies($post->post_type);
+/**
+ * Insere termos ausentes em uma taxonomia
+ * 
+ * @param string $property_taxonomy Nome da taxonomia
+ * @param array $data Array de strings contendo os nomes dos termos criados
+ * @return int Quantidade de termos criados
+ */
+function insert_missing_taxonomy($property_taxonomy, $data)
+{
+  $terms = array();
+  $property_taxonomy = str_replace('_', '-', $property_taxonomy);
+  foreach ($data as $term_name) {
+    $term = term_exists($term_name, $property_taxonomy);
 
-    foreach ($post_taxonomies as $taxonomy) {
-      $terms = wp_get_post_terms($post->ID, $taxonomy);
-
-      if (!empty($terms) && !is_wp_error($terms)) {
-        if (!isset($taxonomies[$taxonomy])) {
-          $taxonomies[$taxonomy] = array();
-        }
-
-        foreach ($terms as $term) {
-          $taxonomies[$taxonomy][$term->term_id] = $term->name;
-        }
-      }
+    if (!$term) {
+      $slug = str_replace(' ', '-', $term_name);
+      $slug = strtolower($slug);
+      $slug = preg_replace('/[^a-z0-9-]/', '', $slug);
+      $term = wp_insert_term($term_name, $property_taxonomy, array('slug' => $slug));
+      $terms[] = $term;
     }
   }
 
-  // Compare $taxonomies with $data
-  foreach ($taxonomies as $taxonomy => $terms) {
-    foreach ($terms as $term_id => $term_name) {
-      if (!in_array($term_name, $data)) {
-        wp_set_object_terms($post->ID, $term_name, $taxonomy, true);
-      }
-    }
-  }
-
-  return "Inserted " . count($taxonomies) . " taxonomies";
+  return count($terms);
 }

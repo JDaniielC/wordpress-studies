@@ -16,7 +16,22 @@ if (isset($_POST['property_data'])) {
   }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['preprocess']) && is_array($_POST['preprocess'])) {
+  foreach ($_POST['preprocess'] as $property_attribute => $values) {
+    $result = insert_missing_taxonomy($property_attribute, $values);
+
+    echo "<script>alert('{$property_attribute}: {$result} added on database');</script>";
+  }
+}
+
 $property_ids_db = get_all_property_identity_from_database();
+$property_city_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_city);
+$property_state_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_state);
+$property_neighborhood_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_neighborhood);
+$property_type_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_type);
+$property_status_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_status);
+$property_label_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_label);
+
 
 get_header();
 
@@ -194,6 +209,12 @@ $hide_property_fields = array(
 
   <script>
     var propertyIdsDB = <?php echo json_encode(array_map('strval', $property_ids_db)); ?>;
+    var propertyStateDB = <?php echo json_encode(array_map('strval', $property_state_db)); ?>;
+    var propertyCityDB = <?php echo json_encode(array_map('strval', $property_city_db)); ?>;
+    var propertyNeighborhoodDB = <?php echo json_encode(array_map('strval', $property_neighborhood_db)); ?>;
+    var propertyTypeDB = <?php echo json_encode(array_map('strval', $property_type_db)); ?>;
+    var propertyStatusDB = <?php echo json_encode(array_map('strval', $property_status_db)); ?>;
+    var propertyLabelDB = <?php echo json_encode(array_map('strval', $property_label_db)); ?>;
   </script> 
 </body>
 </html>

@@ -447,6 +447,76 @@ function importSelectedProperty(propertyData) {
   form.submit();
 }
 
+function submitPreprocessData(attributes) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = window.location.href;
+
+  // Para cada atributo, crie um input
+  Object.entries(attributes).forEach(([key, values]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = `preprocess[${key}][]`;
+    // Para cada valor, crie um input separado
+    values.forEach(value => {
+      const valueInput = document.createElement("input");
+      valueInput.type = "hidden";
+      valueInput.name = `preprocess[${key}][]`;
+      valueInput.value = value;
+      form.appendChild(valueInput);
+    });
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function insertMissingTaxonomy(data) {
+  const attributes = [
+    { key: 'property_state', set: new Set(), db: propertyStateDB },
+    { key: 'property_city', set: new Set(), db: propertyCityDB },
+    { key: 'property_neighborhood', set: new Set(), db: propertyNeighborhoodDB },
+    { key: 'property_type', set: new Set(), db: propertyTypeDB },
+    { key: 'property_status', set: new Set(), db: propertyStatusDB },
+    { key: 'property_label', set: new Set(), db: propertyLabelDB }
+  ];
+
+  data.forEach(property => {
+    attributes.forEach(attr => {
+      if (property[attr.key]) attr.set.add(property[attr.key]);
+    });
+  });
+
+  // Monte o objeto para enviar, apenas com os que faltam no banco
+  const preprocessAttributes = {};
+  attributes.forEach(attr => {
+    if (attr.set.size > 0) {
+      // Filtra apenas os que não estão no banco
+      const missing = Array.from(attr.set).filter(
+        value => !attr.db.includes(value)
+      );
+      if (missing.length > 0) {
+        preprocessAttributes[attr.key] = missing;
+      }
+    }
+  });
+
+  if (Object.keys(preprocessAttributes).length > 0) {
+    // Monta uma mensagem amigável com os dados faltantes
+    let msg = "Para uma migração completa de dados, alguns dados devem ser pré cadastrados no banco:\n\n";
+    Object.entries(preprocessAttributes).forEach(([key, values]) => {
+      msg += `- ${key}: ${values.join(", ")}\n`;
+    });
+    msg += "\nDeseja cadastrar esses dados agora?";
+
+    if (confirm(msg)) {
+      submitPreprocessData(preprocessAttributes);
+    } else {
+      alert("Pré-processamento cancelado pelo usuário.");
+    }
+  }
+}
+
 function setCurrentData(filter = false) {
   if (filter) {
     currentData = rowData.filter(property => !propertyIdsDB.includes(String(property.id)));
@@ -494,6 +564,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let data = e.target.result;
             readFile(data, fileType);
             setCurrentData(true)
+            insertMissingTaxonomy(rowData);
           };
 
           reader.readAsText(file);
