@@ -1,4 +1,5 @@
 let rowData = [];
+let currentData = [];
 
 function formatDescription(text) {
   if (!text) {
@@ -242,10 +243,10 @@ function hidePropertiesSelection() {
   const buttonSection = document.querySelector("#properties_selection");
   if (buttonSection.style.display === "none") {
     buttonSection.style.display = "flex";
-    this.textContent = "Hide Properties Selection";
+    buttonSection.textContent = "Hide Properties Selection";
   } else {
     buttonSection.style.display = "none";
-    this.textContent = "Show Properties Selection";
+    buttonSection.textContent = "Show Properties Selection";
   }
 }
 
@@ -446,6 +447,35 @@ function importSelectedProperty(propertyData) {
   form.submit();
 }
 
+function setCurrentData(filter = false) {
+  if (filter) {
+    currentData = rowData.filter(property => !propertyIdsDB.includes(String(property.id)));
+  } else {
+    currentData = rowData;
+  }
+}
+
+function renderPropertyButtons() {
+  const buttonSection = document.querySelector("#properties_selection");
+  buttonSection.innerHTML = "";
+  const selectorDiv = document.createElement("div");
+  selectorDiv.className = "row-selector";
+
+  const label = document.createElement("h4");
+  label.textContent = "Select Property to Import:";
+  selectorDiv.appendChild(label);
+
+  currentData.forEach((row, index) => {
+    const button = document.createElement("button");
+    button.className = "btn btn-secondary property-select-btn";
+    button.textContent = `${index + 1}. ${row.property_title} (ID: ${row.id})`;
+    button.onclick = () => selectProperty(currentData[index]);
+    selectorDiv.appendChild(button);
+  });
+
+  buttonSection.appendChild(selectorDiv);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("ere_select_json_file")
@@ -463,6 +493,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const fileType = file.type;
             let data = e.target.result;
             readFile(data, fileType);
+            setCurrentData(true)
           };
 
           reader.readAsText(file);
@@ -565,29 +596,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("import-selected-property")
     .addEventListener("click", function () {
-      const hideSection = document.querySelector("#hide_properties_selection");
-      hideSection.textContent = "Hide Properties Selection";
-      hideSection.style.display = "block";
-
-      const buttonSection = document.querySelector("#properties_selection");
-      buttonSection.innerHTML = "";
-      const selectorDiv = document.createElement("div");
-      selectorDiv.className = "row-selector";
-
-      const label = document.createElement("h4");
-      label.textContent = "Select Property to Import:";
-      selectorDiv.appendChild(label);
-
-      rowData.forEach((row, index) => {
-        const button = document.createElement("button");
-        button.className = "btn btn-secondary property-select-btn";
-        button.textContent = `${index + 1}. ${row.property_title} (ID: ${
-          row.id
-        })`;
-        button.onclick = () => selectProperty(rowData[index]);
-        selectorDiv.appendChild(button);
-      });
-      buttonSection.appendChild(selectorDiv);
+      renderPropertyButtons();
     });
 
   document
@@ -638,4 +647,19 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", function () {
       hidePropertiesSelection();
     });
+
+  document.getElementById("show_only_new_properties").addEventListener("click", function () {
+    const onlyNewPropertiesButton = document.getElementById("show_only_new_properties");
+
+    if (onlyNewPropertiesButton.checked) {
+      setCurrentData(true);
+    } else {
+      setCurrentData();
+    }
+
+    const buttonsWasRendered = document.querySelector("#properties_selection .row-selector");
+    if (buttonsWasRendered) {
+      renderPropertyButtons();
+    }
+  });
 });

@@ -121,6 +121,21 @@ function import_property_to_wordpress($property_data)
   );
 }
 
+/**
+ * Get all property_identity from database
+ * 
+ * @return array
+ */
+function get_all_property_identity_from_database()
+{
+  global $wpdb;
+  return $wpdb->get_col( "
+      SELECT meta_value
+      FROM $wpdb->postmeta
+      WHERE meta_key = 'real_estate_property_identity'
+  " );
+}
+
 enum PropertyAttribute
 {
   case property_address;

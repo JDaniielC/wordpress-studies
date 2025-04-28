@@ -16,6 +16,8 @@ if (isset($_POST['property_data'])) {
   }
 }
 
+$property_ids_db = get_all_property_identity_from_database();
+
 get_header();
 
 global $hide_property_fields;
@@ -158,6 +160,10 @@ $hide_property_fields = array(
       <button id="import-selected-property" class="button btn-submit-property">
         Import Selected Property
       </button>
+      <label for="show_only_new_properties" style="display:inline-flex;align-items:center;gap:5px;">
+        <input type="checkbox" id="show_only_new_properties" checked />
+        Show only new properties
+      </label>
     </div>
 
     <button id="hide_properties_selection">Hide Properties Selection</button>
@@ -185,6 +191,10 @@ $hide_property_fields = array(
   </div>
 
   <script src="<?php echo get_template_directory_uri(); ?>/templates/property-import/js/import-scripts.js"></script>
+
+  <script>
+    var propertyIdsDB = <?php echo json_encode(array_map('strval', $property_ids_db)); ?>;
+  </script> 
 </body>
 </html>
 <?php get_footer(); ?> 
