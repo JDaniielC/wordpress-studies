@@ -239,14 +239,15 @@ function readFile(data, fileType) {
   }
 }
 
-function hidePropertiesSelection() {
-  const buttonSection = document.querySelector("#properties_selection");
-  if (buttonSection.style.display === "none") {
-    buttonSection.style.display = "flex";
-    buttonSection.textContent = "Hide Properties Selection";
+function togglePropertySelection() {
+  const showHideButton = document.querySelector('#hide_properties_selection')
+  const propertySelection = document.querySelector('#properties_selection')
+  if (propertySelection.style.display === "none") {
+    showHideButton.textContent = "Hide Properties Selection";
+    propertySelection.style.display = "block";
   } else {
-    buttonSection.style.display = "none";
-    buttonSection.textContent = "Show Properties Selection";
+    showHideButton.textContent = "Show Properties Selection";
+    propertySelection.style.display = "none";
   }
 }
 
@@ -257,7 +258,7 @@ function selectProperty(propertyData) {
 
   document.getElementById("ere_property_form").style.display = "block";
 
-  hidePropertiesSelection();
+  togglePropertySelection();
 
   const fieldMapping = {
     property_title: propertyData.property_title,
@@ -547,6 +548,12 @@ function renderPropertyButtons() {
   label.textContent = "Select Property to Import:";
   selectorDiv.appendChild(label);
 
+  const showHideButton = document.querySelector('#hide_properties_selection')
+  if (showHideButton) {
+    showHideButton.textContent = "Hide Properties Selection";
+    showHideButton.style.display = "block";
+  }
+
   currentData.forEach((row, index) => {
     const button = document.createElement("button");
     button.className = "btn btn-secondary property-select-btn";
@@ -668,15 +675,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
   document
-    .getElementById("import-all-properties")
-    .addEventListener("click", function () {
-      for (let i = 0; i < rowData.length; i++) {
-        const property = rowData[i];
-        importSelectedProperty(property);
-      }
-    });
-
-  document
     .getElementById("import-selected-property")
     .addEventListener("click", function () {
       renderPropertyButtons();
@@ -728,7 +726,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("hide_properties_selection")
     .addEventListener("click", function () {
-      hidePropertiesSelection();
+      togglePropertySelection();
     });
 
   document.getElementById("show_only_new_properties").addEventListener("click", function () {

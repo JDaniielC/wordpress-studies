@@ -169,9 +169,6 @@ $hide_property_fields = array(
 
   <div class="property-selection">
     <div class="property-selection-buttons">
-      <button id="import-all-properties" class="button btn-submit-property" disabled>
-        Import All Properties
-      </button>
       <button id="import-selected-property" class="button btn-submit-property">
         Import Selected Property
       </button>
