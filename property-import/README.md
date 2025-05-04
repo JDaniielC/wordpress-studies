@@ -34,9 +34,9 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 - [ ] Criar seleção de agente default
 
 ### 6. Geolocalização
-- [ ] Formatar address e adicionar à UI
-- [ ] Adicionar Address ao mapa
-- [ ] Recuperar lat/long para adicionar ao banco
+- [x] Formatar address e adicionar à UI
+- [x] Adicionar Address ao mapa
+- [x] Recuperar lat/long para adicionar ao banco
 
 ## 🐛 Correções Necessárias
 

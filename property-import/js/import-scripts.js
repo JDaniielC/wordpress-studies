@@ -282,6 +282,36 @@ function togglePropertySelection() {
   }
 }
 
+function setMapLocation(propertyAddress) {
+  const element = document.getElementsByClassName("g5ere__property_address")[0];
+  if (element) {
+    element.value = propertyAddress;
+
+    const event = new Event("input", { bubbles: true });
+    element.dispatchEvent(event);
+
+    setTimeout(() => {
+      const mapResults = document.querySelectorAll(".g5ere__suggestion");
+      if (mapResults.length > 0) {
+        mapResults[0].click();
+      }
+    }, 1000);
+  }
+}
+
+function getLatLong() {
+  const latInput = document.getElementById('lat');
+  const lngInput = document.getElementById('lng');
+  
+  if (latInput && lngInput) {
+    return {
+      lat: parseFloat(latInput.value),
+      lng: parseFloat(lngInput.value)
+    };
+  }
+  return null;
+}
+
 function selectProperty(propertyData) {
   const buttons = document.getElementsByClassName("property-select-btn");
   Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
@@ -291,6 +321,10 @@ function selectProperty(propertyData) {
 
   togglePropertySelection();
 
+  const propertyAddress = `${propertyData.property_city}, ${propertyData.property_district}, ${propertyData.property_country}`;
+
+  setMapLocation(propertyAddress);
+
   const fieldMapping = {
     property_title: propertyData.property_title,
     property_des: propertyData.property_description,
@@ -299,7 +333,7 @@ function selectProperty(propertyData) {
     property_label: propertyData.property_label,
     property_price_short: propertyData.property_price.toString(),
     property_price_unit: "1",
-    address1: propertyData.property_address,
+    address1: propertyAddress,
     property_country: propertyData.property_country,
     property_city: propertyData.property_city,
     administrative_area_level_1: propertyData.property_district,
@@ -457,7 +491,6 @@ function setPropertyData(property = undefined) {
       return slug;
     };
 
-    // Get the option label from the select element
     const getOptionLabel = (elementId) => {
       const element = document.getElementById(elementId);
       const option = element ? element.options[element.selectedIndex].text : "";
@@ -467,6 +500,8 @@ function setPropertyData(property = undefined) {
     const getDescriptionValue = () => {
       return getIframeContent("property_des_ifr", "property_des");
     };
+
+    const { lat, lng } = getLatLong();
 
     property_data = {
       id: getElementValue("property_identity"),
@@ -492,6 +527,8 @@ function setPropertyData(property = undefined) {
       property_images: getElementValue("property_gallery"),
       property_files: getElementValue("property_attachments"),
       property_video_url: getElementValue("property_video_url"),
+      lat: lat,
+      lng: lng,
     };
   }
 
@@ -518,12 +555,10 @@ function submitPreprocessData(attributes) {
   form.method = "POST";
   form.action = window.location.href;
 
-  // Para cada atributo, crie um input
   Object.entries(attributes).forEach(([key, values]) => {
     const input = document.createElement("input");
     input.type = "hidden";
     input.name = `preprocess[${key}][]`;
-    // Para cada valor, crie um input separado
     values.forEach((value) => {
       const valueInput = document.createElement("input");
       valueInput.type = "hidden";
@@ -557,11 +592,9 @@ function insertMissingTaxonomy(data) {
     });
   });
 
-  // Monte o objeto para enviar, apenas com os que faltam no banco
   const preprocessAttributes = {};
   attributes.forEach((attr) => {
     if (attr.set.size > 0) {
-      // Filtra apenas os que não estão no banco
       const missing = Array.from(attr.set).filter(
         (value) => !attr.db.includes(value)
       );
@@ -572,7 +605,6 @@ function insertMissingTaxonomy(data) {
   });
 
   if (Object.keys(preprocessAttributes).length > 0) {
-    // Monta uma mensagem amigável com os dados faltantes
     let msg =
       "Para uma migração completa de dados, alguns dados devem ser pré cadastrados no banco:\n\n";
     Object.entries(preprocessAttributes).forEach(([key, values]) => {
