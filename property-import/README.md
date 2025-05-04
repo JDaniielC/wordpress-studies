@@ -40,6 +40,8 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 
 ## 🐛 Correções Necessárias
 
-1. Botão "Hide selections" não está visível
-2. Descrição não aparece na UI, mas está no backend
+<s>1. Botão "Hide selections" não está visível</s>
+
+<s>2. Descrição não aparece na UI, mas está no backend</s>
+
 3. Melhorar UI da seleção de imóveis (nomes grandes passam do background)

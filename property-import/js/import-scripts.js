@@ -153,29 +153,58 @@ function convertXmlToJson(xmlData) {
       id: getValue("Referencia") || getValue("id") || "",
       property_city: getValue("Concelho") || getValue("property_city") || "",
       property_label: getValue("Estado") || getValue("property_label") || "",
-      property_title: getValue("Nome_pt-pt") || getValue("property_title") || "",
+      property_title:
+        getValue("Nome_pt-pt") || getValue("property_title") || "",
       property_status: getValue("Estado") || getValue("property_status") || "",
       property_country: getValue("Pais") || getValue("property_country") || "",
-      property_district: getValue("Distrito") || getValue("property_district") || "",
+      property_district:
+        getValue("Distrito") || getValue("property_district") || "",
       property_type: getValue("Natureza") || getValue("property_type") || "",
-      property_neighborhood: getValue("Zona") || getValue("property_neighborhood") || "",
-      property_price: convertToFloat(getValue("Venda") || getValue("property_price")) || 0,
-      property_area: convertToFloat(getValue("Areautil") || getValue("property_area")) || 0,
-      property_land: convertToFloat(getValue("AreaTerreno") || getValue("property_land")) || 0,
-      property_video_url: transformYoutubeUrl(getValue("Linkdovideo") || getValue("property_video_url")) || "",
-      property_description: formatDescription(getValue("Descricao_pt-pt") || getValue("property_description")) || "",
-      property_rooms: convertToFloat(getValue("Salas") || getValue("property_rooms")) || 0,
-      property_bathrooms: convertToFloat(getValue("Banheiros") || getValue("property_bathrooms")) || 0,
-      property_garage: convertToFloat(getValue("Garagem") || getValue("property_garage")) || 0,
-      property_bedrooms: convertToFloat(getValue("Quartos") || getValue("property_bedrooms")) || 0,
-      property_garage_size: convertToFloat(getValue("TamanhoGaragem") || getValue("property_garage_size")) || 0,
-      property_address: getValue("Endereco") || getValue("property_address") || "",
+      property_neighborhood:
+        getValue("Zona") || getValue("property_neighborhood") || "",
+      property_price:
+        convertToFloat(getValue("Venda") || getValue("property_price")) || 0,
+      property_area:
+        convertToFloat(getValue("Areautil") || getValue("property_area")) || 0,
+      property_land:
+        convertToFloat(getValue("AreaTerreno") || getValue("property_land")) ||
+        0,
+      property_video_url:
+        transformYoutubeUrl(
+          getValue("Linkdovideo") || getValue("property_video_url")
+        ) || "",
+      property_description:
+        formatDescription(
+          getValue("Descricao_pt-pt") || getValue("property_description")
+        ) || "",
+      property_rooms:
+        convertToFloat(getValue("Salas") || getValue("property_rooms")) || 0,
+      property_bathrooms:
+        convertToFloat(
+          getValue("Banheiros") || getValue("property_bathrooms")
+        ) || 0,
+      property_garage:
+        convertToFloat(getValue("Garagem") || getValue("property_garage")) || 0,
+      property_bedrooms:
+        convertToFloat(getValue("Quartos") || getValue("property_bedrooms")) ||
+        0,
+      property_garage_size:
+        convertToFloat(
+          getValue("TamanhoGaragem") || getValue("property_garage_size")
+        ) || 0,
+      property_address:
+        getValue("Endereco") || getValue("property_address") || "",
       property_zip: getValue("Codigopostal") || getValue("property_zip") || "",
-      property_images: (getValue("Linkdaimagem") || getValue("property_images") || "")
+      property_images: (
+        getValue("Linkdaimagem") ||
+        getValue("property_images") ||
+        ""
+      )
         .split(",")
         .map((url) => url.trim())
         .filter(Boolean),
-      property_files: getValue("Linkdaplanta") || getValue("property_files") || "",
+      property_files:
+        getValue("Linkdaplanta") || getValue("property_files") || "",
     };
     properties.push(propertyData);
   }
@@ -185,7 +214,7 @@ function convertXmlToJson(xmlData) {
 
 function formatJsonData(jsonData) {
   const formattedData = {
-    Row: jsonData.Row.map(property => ({
+    Row: jsonData.Row.map((property) => ({
       id: String(property.id) || "",
       property_title: String(property.property_title) || "",
       property_type: String(property.property_type) || "",
@@ -205,10 +234,12 @@ function formatJsonData(jsonData) {
       property_address: String(property.property_address) || "",
       property_bedrooms: parseFloat(property.property_bedrooms) || 0,
       property_garage_size: parseFloat(property.property_garage_size) || 0,
-      property_description: formatDescription(String(property.property_description)) || "",
+      property_description:
+        formatDescription(String(property.property_description)) || "",
       property_images: String(property.property_images) || "",
       property_files: String(property.property_files) || "",
-      property_video_url: transformYoutubeUrl(String(property.property_video_url)) || "",
+      property_video_url:
+        transformYoutubeUrl(String(property.property_video_url)) || "",
       agent: String(property.agent) || "",
     })),
   };
@@ -219,7 +250,7 @@ function readFile(data, fileType) {
   if (fileType === "application/xml" || fileType === "text/xml") {
     data = convertXmlToJson(data);
   } else if (fileType === "application/json") {
-    data = JSON.parse(data); 
+    data = JSON.parse(data);
     data = formatJsonData(data);
   } else {
     alert("Please upload a JSON or XML file");
@@ -240,8 +271,8 @@ function readFile(data, fileType) {
 }
 
 function togglePropertySelection() {
-  const showHideButton = document.querySelector('#hide_properties_selection')
-  const propertySelection = document.querySelector('#properties_selection')
+  const showHideButton = document.querySelector("#hide_properties_selection");
+  const propertySelection = document.querySelector("#properties_selection");
   if (propertySelection.style.display === "none") {
     showHideButton.textContent = "Hide Properties Selection";
     propertySelection.style.display = "block";
@@ -290,7 +321,9 @@ function selectProperty(propertyData) {
   Object.entries(fieldMapping).forEach(([fieldId, value]) => {
     const element = document.getElementById(fieldId);
     if (element) {
-      if (element.tagName === "SELECT") {
+      if (fieldId === "property_des") {
+        setIframeContent("property_des_ifr", "property_des", value);
+      } else if (element.tagName === "SELECT") {
         const option = Array.from(element.options).find(
           (opt) => opt.text.toLowerCase() === value.toLowerCase()
         );
@@ -387,6 +420,22 @@ function checkJsonData(jsonData) {
   return true;
 }
 
+function getIframeContent(iframeId, elementClass) {
+  const iframe = document.getElementById(iframeId);
+  const iframeDoc =
+    iframe.contentDocument || iframe.contentWindow.document;
+  const element = iframeDoc.querySelector(`.${elementClass} p`);
+  return element ? element.textContent : "";
+}
+
+function setIframeContent(iframeId, elementClass, content) {
+  const iframe = document.getElementById(iframeId);
+  const iframeDoc =
+    iframe.contentDocument || iframe.contentWindow.document;
+  const element = iframeDoc.querySelector(`.${elementClass} p`);
+  element.textContent = content;
+}
+
 function setPropertyData(property = undefined) {
   let property_data = property;
   if (!property) {
@@ -402,9 +451,9 @@ function setPropertyData(property = undefined) {
     };
 
     const getSlug = (value) => {
-      let slug = value.replace(' ', '-');
+      let slug = value.replace(" ", "-");
       slug = slug.toLowerCase();
-      slug = slug.replace(/[^a-z0-9-]/g, '');
+      slug = slug.replace(/[^a-z0-9-]/g, "");
       return slug;
     };
 
@@ -415,10 +464,14 @@ function setPropertyData(property = undefined) {
       return getSlug(option);
     };
 
+    const getDescriptionValue = () => {
+      return getIframeContent("property_des_ifr", "property_des");
+    };
+
     property_data = {
       id: getElementValue("property_identity"),
       property_title: getElementValue("property_title"),
-      property_description: getElementValue("property_des"),
+      property_description: getDescriptionValue(),
       property_type: getOptionLabel("property_type"),
       property_status: getOptionLabel("property_status"),
       property_label: getOptionLabel("property_label"),
@@ -471,7 +524,7 @@ function submitPreprocessData(attributes) {
     input.type = "hidden";
     input.name = `preprocess[${key}][]`;
     // Para cada valor, crie um input separado
-    values.forEach(value => {
+    values.forEach((value) => {
       const valueInput = document.createElement("input");
       valueInput.type = "hidden";
       valueInput.name = `preprocess[${key}][]`;
@@ -486,27 +539,31 @@ function submitPreprocessData(attributes) {
 
 function insertMissingTaxonomy(data) {
   const attributes = [
-    { key: 'property_state', set: new Set(), db: propertyStateDB },
-    { key: 'property_city', set: new Set(), db: propertyCityDB },
-    { key: 'property_neighborhood', set: new Set(), db: propertyNeighborhoodDB },
-    { key: 'property_type', set: new Set(), db: propertyTypeDB },
-    { key: 'property_status', set: new Set(), db: propertyStatusDB },
-    { key: 'property_label', set: new Set(), db: propertyLabelDB }
+    { key: "property_state", set: new Set(), db: propertyStateDB },
+    { key: "property_city", set: new Set(), db: propertyCityDB },
+    {
+      key: "property_neighborhood",
+      set: new Set(),
+      db: propertyNeighborhoodDB,
+    },
+    { key: "property_type", set: new Set(), db: propertyTypeDB },
+    { key: "property_status", set: new Set(), db: propertyStatusDB },
+    { key: "property_label", set: new Set(), db: propertyLabelDB },
   ];
 
-  data.forEach(property => {
-    attributes.forEach(attr => {
+  data.forEach((property) => {
+    attributes.forEach((attr) => {
       if (property[attr.key]) attr.set.add(property[attr.key]);
     });
   });
 
   // Monte o objeto para enviar, apenas com os que faltam no banco
   const preprocessAttributes = {};
-  attributes.forEach(attr => {
+  attributes.forEach((attr) => {
     if (attr.set.size > 0) {
       // Filtra apenas os que não estão no banco
       const missing = Array.from(attr.set).filter(
-        value => !attr.db.includes(value)
+        (value) => !attr.db.includes(value)
       );
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;
@@ -516,7 +573,8 @@ function insertMissingTaxonomy(data) {
 
   if (Object.keys(preprocessAttributes).length > 0) {
     // Monta uma mensagem amigável com os dados faltantes
-    let msg = "Para uma migração completa de dados, alguns dados devem ser pré cadastrados no banco:\n\n";
+    let msg =
+      "Para uma migração completa de dados, alguns dados devem ser pré cadastrados no banco:\n\n";
     Object.entries(preprocessAttributes).forEach(([key, values]) => {
       msg += `- ${key}: ${values.join(", ")}\n`;
     });
@@ -532,7 +590,9 @@ function insertMissingTaxonomy(data) {
 
 function setCurrentData(filter = false) {
   if (filter) {
-    currentData = rowData.filter(property => !propertyIdsDB.includes(String(property.id)));
+    currentData = rowData.filter(
+      (property) => !propertyIdsDB.includes(String(property.id))
+    );
   } else {
     currentData = rowData;
   }
@@ -548,7 +608,7 @@ function renderPropertyButtons() {
   label.textContent = "Select Property to Import:";
   selectorDiv.appendChild(label);
 
-  const showHideButton = document.querySelector('#hide_properties_selection')
+  const showHideButton = document.querySelector("#hide_properties_selection");
   if (showHideButton) {
     showHideButton.textContent = "Hide Properties Selection";
     showHideButton.style.display = "block";
@@ -582,7 +642,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const fileType = file.type;
             let data = e.target.result;
             readFile(data, fileType);
-            setCurrentData(true)
+            setCurrentData(true);
             insertMissingTaxonomy(rowData);
           };
 
@@ -729,18 +789,24 @@ document.addEventListener("DOMContentLoaded", function () {
       togglePropertySelection();
     });
 
-  document.getElementById("show_only_new_properties").addEventListener("click", function () {
-    const onlyNewPropertiesButton = document.getElementById("show_only_new_properties");
+  document
+    .getElementById("show_only_new_properties")
+    .addEventListener("click", function () {
+      const onlyNewPropertiesButton = document.getElementById(
+        "show_only_new_properties"
+      );
 
-    if (onlyNewPropertiesButton.checked) {
-      setCurrentData(true);
-    } else {
-      setCurrentData();
-    }
+      if (onlyNewPropertiesButton.checked) {
+        setCurrentData(true);
+      } else {
+        setCurrentData();
+      }
 
-    const buttonsWasRendered = document.querySelector("#properties_selection .row-selector");
-    if (buttonsWasRendered) {
-      renderPropertyButtons();
-    }
-  });
+      const buttonsWasRendered = document.querySelector(
+        "#properties_selection .row-selector"
+      );
+      if (buttonsWasRendered) {
+        renderPropertyButtons();
+      }
+    });
 });
