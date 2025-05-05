@@ -23,8 +23,8 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 - [x] Inserir taxonomias que faltam
 
 ### 4. Features do Imóvel
-- [ ] Ler o atributo features e formatar
-- [ ] Criar as features não existentes
+- [x] Ler o atributo features e formatar
+- [x] Criar as features não existentes
 - [ ] Anexar features aos imóveis
 
 ### 5. Sistema de Agentes

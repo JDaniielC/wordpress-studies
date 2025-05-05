@@ -1,5 +1,6 @@
 let rowData = [];
 let currentData = [];
+let propertyFeatureIds = [];
 
 function formatDescription(text) {
   if (!text) {
@@ -141,6 +142,10 @@ function convertXmlToJson(xmlData) {
 
   const properties = [];
 
+  function getPropertyFeatures(propertyFeatures) {
+    return propertyFeatures.split(",").map((feature) => feature.trim());
+  }
+
   const rows = xmlDoc.getElementsByTagName("Row");
   for (const property of rows) {
     const getValue = (tag) => {
@@ -205,6 +210,10 @@ function convertXmlToJson(xmlData) {
         .filter(Boolean),
       property_files:
         getValue("Linkdaplanta") || getValue("property_files") || "",
+      property_features:
+        getPropertyFeatures(
+          getValue("Features") || getValue("property_features") || ""
+        ),
     };
     properties.push(propertyData);
   }
@@ -240,6 +249,7 @@ function formatJsonData(jsonData) {
       property_files: String(property.property_files) || "",
       property_video_url:
         transformYoutubeUrl(String(property.property_video_url)) || "",
+      property_features: property.property_features?.split(",") || [],
       agent: String(property.agent) || "",
     })),
   };
@@ -268,6 +278,22 @@ function readFile(data, fileType) {
     }
     rowData = data.Row;
   }
+}
+
+function getPropertyFeatureIds() {
+  const propertyFeaturesInputs = document.querySelectorAll(".g5ere__sf-feature");
+  propertyFeaturesInputs.forEach((feature) => {
+    const featureId = feature.querySelector("input").id;
+    const featureName = feature.querySelector("label").textContent;
+    if (featureId) {
+      propertyFeatureIds.push({
+        id: featureId,
+        name: featureName,
+      });
+    }
+  });
+
+  return propertyFeatureIds;
 }
 
 function togglePropertySelection() {
@@ -299,6 +325,18 @@ function setMapLocation(propertyAddress) {
   }
 }
 
+function setPropertyFeatures(propertyFeatures) {
+  const transformedFeatures = propertyFeatures.map((feature) => {
+    return propertyFeatureIds.find((f) => f.name === feature)?.id;
+  });
+  transformedFeatures.forEach((feature) => {
+    const featureElement = document.getElementById(feature);
+    if (featureElement) {
+      featureElement.checked = true;
+    }
+  });
+}
+
 function getLatLong() {
   const latInput = document.getElementById('lat');
   const lngInput = document.getElementById('lng');
@@ -324,6 +362,7 @@ function selectProperty(propertyData) {
   const propertyAddress = `${propertyData.property_city}, ${propertyData.property_district}, ${propertyData.property_country}`;
 
   setMapLocation(propertyAddress);
+  propertyFeatureIds = getPropertyFeatureIds();
 
   const fieldMapping = {
     property_title: propertyData.property_title,
@@ -378,6 +417,15 @@ function selectProperty(propertyData) {
           element.value = value;
         }
       }
+    }
+  });
+
+  const features = propertyData.property_features || "";
+  const featuresArray = features.split(",");
+  featuresArray.forEach((feature) => {
+    const featureElement = document.getElementById(feature);
+    if (featureElement) {
+      featureElement.checked = true;
     }
   });
 }
@@ -465,8 +513,8 @@ function getIframeContent(iframeId, elementClass) {
 function setIframeContent(iframeId, elementClass, content) {
   const iframe = document.getElementById(iframeId);
   const iframeDoc =
-    iframe.contentDocument || iframe.contentWindow.document;
-  const element = iframeDoc.querySelector(`.${elementClass} p`);
+    iframe?.contentDocument || iframe?.contentWindow?.document;
+  const element = iframeDoc?.querySelector(`.${elementClass} p`);
   element.textContent = content;
 }
 
@@ -527,6 +575,7 @@ function setPropertyData(property = undefined) {
       property_images: getElementValue("property_gallery"),
       property_files: getElementValue("property_attachments"),
       property_video_url: getElementValue("property_video_url"),
+      property_features: getElementValue("property_features"),
       lat: lat,
       lng: lng,
     };
@@ -584,6 +633,7 @@ function insertMissingTaxonomy(data) {
     { key: "property_type", set: new Set(), db: propertyTypeDB },
     { key: "property_status", set: new Set(), db: propertyStatusDB },
     { key: "property_label", set: new Set(), db: propertyLabelDB },
+    { key: "property_feature", set: new Set(), db: propertyFeatureDB },
   ];
 
   data.forEach((property) => {

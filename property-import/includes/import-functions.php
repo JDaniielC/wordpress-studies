@@ -142,6 +142,7 @@ enum PropertyTaxonomy
   case property_status;
   case property_type;
   case property_label;
+  case property_feature;
 }
 
 /**
