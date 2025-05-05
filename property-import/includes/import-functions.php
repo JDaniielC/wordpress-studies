@@ -126,11 +126,11 @@ function import_property_to_wordpress($property_data)
 function get_all_property_identity_from_database()
 {
   global $wpdb;
-  return $wpdb->get_col( "
+  return $wpdb->get_col("
       SELECT meta_value
       FROM $wpdb->postmeta
       WHERE meta_key = 'real_estate_property_identity'
-  " );
+  ");
 }
 
 
@@ -158,12 +158,12 @@ function get_all_property_taxonomy_from_database($property_taxonomy)
     $property_taxonomy = str_replace('_', '-', $property_taxonomy);
   }
 
-  return $wpdb->get_col( "
+  return $wpdb->get_col("
       SELECT t.name
       FROM {$wpdb->terms} t
       INNER JOIN {$wpdb->term_taxonomy} tt ON t.term_id = tt.term_id
       WHERE tt.taxonomy = '$property_taxonomy'
-  " );
+  ");
 }
 
 /**
@@ -190,4 +190,46 @@ function insert_missing_taxonomy($property_taxonomy, $data)
   }
 
   return count($terms);
+}
+
+/**
+ * Register an external image in the WordPress database
+ * 
+ * @param string $image_url The URL of the image
+ * @param string $image_title The title of the image
+ * @return void
+ */
+function register_external_image($image_url, $image_title)
+{
+  if (empty($image_url) || empty($image_title)) {
+    return;
+  }
+
+  $attachment = array(
+    'post_title'     => $image_title,
+    'post_content'   => '',
+    'post_status'    => 'inherit',
+    'post_mime_type' => 'image/jpeg',
+    'post_type'      => 'attachment',
+    'guid'           => $image_url,
+  );
+
+  $attach_id = wp_insert_post($attachment);
+
+  if (is_wp_error($attach_id)) {
+    echo 'Erro ao criar attachment: ' . $attach_id->get_error_message();
+    return;
+  }
+
+  update_post_meta($attach_id, '_wp_attached_file', basename(parse_url($image_url, PHP_URL_PATH)));
+
+  update_post_meta($attach_id, '_wp_attachment_metadata', array(
+    'width'  => 1200,
+    'height' => 800,
+    'file'   => basename(parse_url($image_url, PHP_URL_PATH)),
+    'sizes'  => array(),
+    'image_meta' => array(),
+  ));
+
+  echo "Imagem externa registrada com ID: $attach_id";
 }
