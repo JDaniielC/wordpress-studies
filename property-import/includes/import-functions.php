@@ -119,6 +119,21 @@ function import_property_to_wordpress($property_data)
 }
 
 /**
+ * Get all agents from database
+ * 
+ * @return array
+ */
+function get_all_agents_from_database()
+{
+  global $wpdb;
+  return $wpdb->get_col("
+      SELECT post_title
+      FROM $wpdb->posts
+      WHERE post_type = 'agent'
+  ");
+}
+
+/**
  * Get all property_identity from database
  * 
  * @return array

@@ -31,8 +31,8 @@ $property_neighborhood_db = get_all_property_taxonomy_from_database(PropertyTaxo
 $property_type_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_type);
 $property_status_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_status);
 $property_label_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_label);
-$property_feature_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_feature)
-
+$property_feature_db = get_all_property_taxonomy_from_database(PropertyTaxonomy::property_feature);
+$agents_db = get_all_agents_from_database();
 
 get_header();
 
@@ -215,6 +215,7 @@ $hide_property_fields = array(
     var propertyStatusDB = <?php echo json_encode(array_map('strval', $property_status_db)); ?>;
     var propertyLabelDB = <?php echo json_encode(array_map('strval', $property_label_db)); ?>;
     var propertyFeatureDB = <?php echo json_encode(array_map('strval', $property_feature_db)); ?>;
+    var agentsDB = <?php echo json_encode(array_map('strval', $agents_db)); ?>;
   </script> 
 </body>
 </html>
