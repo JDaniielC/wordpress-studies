@@ -40,6 +40,7 @@ $hide_property_fields = array(
   'property_price_prefix',
   'property_price_postfix',
   'property_price_on_call',
+  'property_price_unit',
   'additional_details'
 );
 ?>

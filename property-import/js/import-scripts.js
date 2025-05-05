@@ -596,7 +596,7 @@ function insertMissingTaxonomy(data) {
   attributes.forEach((attr) => {
     if (attr.set.size > 0) {
       const missing = Array.from(attr.set).filter(
-        (value) => !attr.db.includes(value)
+        (value) => !attr.db.includes(value) && value !== "" && value !== null
       );
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;
