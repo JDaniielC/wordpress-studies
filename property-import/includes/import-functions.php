@@ -128,7 +128,7 @@ function get_all_agents_from_database()
 {
   global $wpdb;
   return $wpdb->get_col("
-      SELECT post_title
+      SELECT post_title, ID
       FROM $wpdb->posts
       WHERE post_type = 'agent'
   ");

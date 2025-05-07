@@ -576,6 +576,7 @@ function setPropertyData(property = undefined) {
       property_files: getElementValue("property_attachments"),
       property_video_url: getElementValue("property_video_url"),
       property_features: getElementValue("property_features"),
+      agent: choosedAgent,
       lat: lat,
       lng: lng,
     };
