@@ -47,7 +47,8 @@ function import_property_to_wordpress($property_data)
     'property_garage' => $property_data['property_garage'],
     'property_garage_size' => $property_data['property_garage_size'],
     'property_year' => isset($property_data['property_year']) ? $property_data['property_year'] : '',
-    'property_identity' => $property_data['id']
+    'property_identity' => $property_data['id'],
+    'property_agent' => $property_data['agent']
   );
 
   // Location data
