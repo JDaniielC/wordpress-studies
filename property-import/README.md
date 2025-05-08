@@ -38,6 +38,9 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 - [x] Adicionar Address ao mapa
 - [x] Recuperar lat/long para adicionar ao banco
 
+### 7. Responsividade
+- [x] Ajustar layout para mobile
+
 ## 🐛 Correções Necessárias
 
 <s>1. Botão "Hide selections" não está visível</s>
