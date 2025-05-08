@@ -420,8 +420,7 @@ function selectProperty(propertyData) {
     }
   });
 
-  const features = propertyData.property_features || "";
-  const featuresArray = features.split(",");
+  const featuresArray = propertyData.property_features;
   featuresArray.forEach((feature) => {
     const featureElement = document.getElementById(feature);
     if (featureElement) {
@@ -708,6 +707,38 @@ function renderPropertyButtons() {
   buttonSection.appendChild(selectorDiv);
 }
 
+function populateAgentOptions() {
+  const agentSelect = document.getElementById('property_agent');
+  if (!agentSelect) return;
+
+  agentSelect.innerHTML = '';
+
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = 'Select an agent';
+  agentSelect.appendChild(defaultOption);
+
+  console.log(agentsDB);
+
+  if (agentsDB && Array.isArray(agentsDB)) {
+    agentsDB.forEach(agent => {
+      const option = document.createElement('option');
+      option.value = agent.ID;
+      option.textContent = agent.post_title;
+      agentSelect.appendChild(option);
+    });
+  }
+}
+
+function handleAgentSelection() {
+  const agentSelect = document.getElementById('property_agent');
+  if (agentSelect) {
+    agentSelect.addEventListener('change', function() {
+      choosedAgent = this.value;
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("ere_select_json_file")
@@ -892,4 +923,7 @@ document.addEventListener("DOMContentLoaded", function () {
         renderPropertyButtons();
       }
     });
+
+  populateAgentOptions();
+  handleAgentSelection();
 });

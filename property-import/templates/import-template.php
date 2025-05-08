@@ -194,14 +194,12 @@ $hide_property_fields = array(
     G5ERE()->get_template("property/submit-property/details.php");
     G5ERE()->get_template("property/submit-property/features.php");
     // G5ERE()->get_template("property/submit-property/media.php");
-    ?>
+    ?> 
 
     <div id="property_agent_selection">
       <label for="property_agent">Agent:</label>
       <select id="property_agent">
-        <?php foreach ($agents_db as $agent) { ?>
-          <option value="<?php echo esc_attr($agent['ID']); ?>"><?php echo esc_html($agent['post_title']); ?></option>
-        <?php } ?>  
+        <!-- Options will be populated by JavaScript -->
       </select>
     </div>
 

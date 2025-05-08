@@ -25,13 +25,13 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 ### 4. Features do Imóvel
 - [x] Ler o atributo features e formatar
 - [x] Criar as features não existentes
-- [ ] Anexar features aos imóveis
+- [x] Anexar features aos imóveis
 
 ### 5. Sistema de Agentes
-- [ ] Verificar se há o agente no sistema
-- [ ] Se houver, anexar agente ao imóvel
-- [ ] Caso contrário, vincular ao agente default
-- [ ] Criar seleção de agente default
+- [x] Verificar se há o agente no sistema
+- [x] Se houver, anexar agente ao imóvel
+- [x] Caso contrário, vincular ao agente default
+- [x] Criar seleção de agente default
 
 ### 6. Geolocalização
 - [x] Formatar address e adicionar à UI
