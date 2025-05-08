@@ -119,20 +119,6 @@ function import_property_to_wordpress($property_data)
   );
 }
 
-/**
- * Get all agents from database
- * 
- * @return array
- */
-function get_all_agents_from_database()
-{
-  global $wpdb;
-  return $wpdb->get_col("
-      SELECT post_title, ID
-      FROM $wpdb->posts
-      WHERE post_type = 'agent'
-  ");
-}
 
 /**
  * Get all property_identity from database
@@ -249,4 +235,28 @@ function register_external_image($image_url, $image_title)
   ));
 
   echo "Imagem externa registrada com ID: $attach_id";
+}
+
+/**
+ * Get all agents from database
+ * 
+ * @return array
+ */
+function get_all_agents_from_database()
+{
+  global $wpdb;
+  $ids = $wpdb->get_col("
+      SELECT ID
+      FROM $wpdb->posts 
+      WHERE post_type = 'agent' 
+      AND post_status = 'publish'
+  ");
+
+  $names = $wpdb->get_col("
+      SELECT post_title
+      FROM $wpdb->posts 
+      WHERE ID IN (" . implode(',', $ids) . ")
+  ");
+
+  return array_combine($ids, $names);
 }

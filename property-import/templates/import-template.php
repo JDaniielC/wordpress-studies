@@ -197,9 +197,8 @@ $hide_property_fields = array(
     ?> 
 
     <div id="property_agent_selection">
-      <label for="property_agent">Agent:</label>
+      <label for="property_agent">Select Agent:</label>
       <select id="property_agent">
-        <!-- Options will be populated by JavaScript -->
       </select>
     </div>
 
@@ -222,8 +221,8 @@ $hide_property_fields = array(
     var propertyStatusDB = <?php echo json_encode(array_map('strval', $property_status_db)); ?>;
     var propertyLabelDB = <?php echo json_encode(array_map('strval', $property_label_db)); ?>;
     var propertyFeatureDB = <?php echo json_encode(array_map('strval', $property_feature_db)); ?>;
-    var agentsDB = <?php echo json_encode(array_map('strval', $agents_db)); ?>;
     var choosedAgent = '';
+    var agentsDB = <?php echo json_encode(array_map('strval', $agents_db)); ?>;
   </script> 
 </body>
 </html>

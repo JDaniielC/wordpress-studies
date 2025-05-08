@@ -514,7 +514,11 @@ function setIframeContent(iframeId, elementClass, content) {
   const iframeDoc =
     iframe?.contentDocument || iframe?.contentWindow?.document;
   const element = iframeDoc?.querySelector(`.${elementClass} p`);
-  element.textContent = content;
+  if (element && content) {
+    element.textContent = content;
+  } else {
+    console.error("Element or content is null for iframeId: ", iframeId, content);
+  }
 }
 
 function setPropertyData(property = undefined) {
@@ -636,9 +640,19 @@ function insertMissingTaxonomy(data) {
     { key: "property_feature", set: new Set(), db: propertyFeatureDB },
   ];
 
-  data.forEach((property) => {
+  // Filtra os dados primeiro para remover propriedades com valores null
+  const filteredData = data.filter(property => {
+    return attributes.every(attr => {
+      const value = property[attr.key];
+      return value !== null && value !== undefined && value !== '';
+    });
+  });
+
+  filteredData.forEach((property) => {
     attributes.forEach((attr) => {
-      if (property[attr.key]) attr.set.add(property[attr.key]);
+      if (property[attr.key]) {
+        attr.set.add(property[attr.key]);
+      }
     });
   });
 
@@ -646,7 +660,7 @@ function insertMissingTaxonomy(data) {
   attributes.forEach((attr) => {
     if (attr.set.size > 0) {
       const missing = Array.from(attr.set).filter(
-        (value) => !attr.db.includes(value) && value !== "" && value !== null
+        (value) => !attr.db.includes(value)
       );
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;
@@ -718,13 +732,11 @@ function populateAgentOptions() {
   defaultOption.textContent = 'Select an agent';
   agentSelect.appendChild(defaultOption);
 
-  console.log(agentsDB);
-
-  if (agentsDB && Array.isArray(agentsDB)) {
-    agentsDB.forEach(agent => {
+  if (agentsDB) {
+    Object.entries(agentsDB).forEach(([id, name]) => {
       const option = document.createElement('option');
-      option.value = agent.ID;
-      option.textContent = agent.post_title;
+      option.value = id;
+      option.textContent = name;
       agentSelect.appendChild(option);
     });
   }
@@ -852,6 +864,8 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("import-selected-property")
     .addEventListener("click", function () {
       renderPropertyButtons();
+      populateAgentOptions();
+      handleAgentSelection();
     });
 
   document
@@ -923,7 +937,4 @@ document.addEventListener("DOMContentLoaded", function () {
         renderPropertyButtons();
       }
     });
-
-  populateAgentOptions();
-  handleAgentSelection();
 });
