@@ -655,6 +655,9 @@ function insertMissingTaxonomy(data) {
   ];
 
   const filteredData = data.filter(property => {
+    if (property.property_features) {
+      return Array.isArray(property.property_features) && property.property_features.length > 0;
+    }
     return attributes.every(attr => {
       const value = property[attr.key];
       return value !== null && value !== undefined && value !== '';
@@ -663,14 +666,18 @@ function insertMissingTaxonomy(data) {
 
   filteredData.forEach((property) => {
     attributes.forEach((attr) => {
+      const value = property[attr.key];
+      const verifiedValue = (
+        value && value !== "" && value !== null && value !== undefined
+      );
       if (attr.key == "property_features") {
-        if (Array.isArray(property[attr.key])) {
-          property[attr.key].forEach(feature => {
+        if (Array.isArray(value)) {
+          value.forEach(feature => {
             attr.set.add(feature);
           });
         }
-      } else if (property[attr.key]) {
-        attr.set.add(property[attr.key]);
+      } else if (verifiedValue) {
+        attr.set.add(value);
       }
     });
   });
@@ -679,7 +686,7 @@ function insertMissingTaxonomy(data) {
   attributes.forEach((attr) => {
     if (attr.set.size > 0) {
       const missing = Array.from(attr.set).filter(
-        (value) => !attr.db.includes(value)
+        (value) => !attr.db.includes(value) && value !== null && value !== 'null'
       );
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;
