@@ -639,6 +639,13 @@ function submitPreprocessData(attributes) {
   form.submit();
 }
 
+function featureExists(feature, database) {
+  const featureExists = database.find(
+    item => item.name.toLowerCase() === feature.toLowerCase()
+  );
+  return featureExists ? featureExists.id : null;
+}
+
 function insertMissingTaxonomy(data) {
   const attributes = [
     { key: "property_state", set: new Set(), db: propertyStateDB },
@@ -685,9 +692,13 @@ function insertMissingTaxonomy(data) {
   const preprocessAttributes = {};
   attributes.forEach((attr) => {
     if (attr.set.size > 0) {
-      const missing = Array.from(attr.set).filter(
-        (value) => !attr.db.includes(value) && value !== null && value !== 'null'
-      );
+      const missing = Array.from(attr.set).filter((value) => {
+        const verifiedValue = (
+          value && value !== "" && value !== null && value !== 'null'
+        );
+        const featureId = featureExists(value, attr.db);
+        return verifiedValue && !featureId;
+      });
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;
       }
