@@ -293,24 +293,43 @@ function readFile(data, fileType) {
   }
 }
 
+const regexExp = /[\t\n]/g
+
 function getPropertyFeatureIds() {
   const featureField = document.querySelectorAll(".property-fields.property-feature.row");
   featureField.forEach((field) => {
     const propertyFeaturesInputs = field.querySelectorAll(".custom-control.custom-checkbox");
     propertyFeaturesInputs.forEach((feature) => {
       const featureId = feature.querySelector("input").id;
-      const regexExpression = /[\t\n]/g
       const featureName = feature.querySelector("label").textContent;
       if (featureId) {
         propertyFeatureIds.push({
           id: featureId,
-          name: featureName.replace(regexExpression, "").trim().toLowerCase(),
+          name: featureName.replace(regexExp, "").trim().toLowerCase(),
         });
       }
     });
   });
 
   return propertyFeatureIds;
+}
+
+function getPropertyFeaturesFromForm() {
+  const features = [];
+  const featureField = document.querySelectorAll(".property-fields.property-feature.row");
+  featureField.forEach((field) => {
+    const propertyFeaturesInputs = field.querySelectorAll(".custom-control.custom-checkbox");
+    propertyFeaturesInputs.forEach((feature) => {
+      const input = feature.querySelector("input");
+      const label = feature.querySelector("label");
+      const value = input.checked;
+      if (value && label) {
+        const featureName = label.textContent.replace(regexExp, "").trim();
+        features.push(featureName);
+      }
+    });
+  });
+  return features;
 }
 
 function togglePropertySelection() {
@@ -592,7 +611,7 @@ function setPropertyData(property = undefined) {
       property_images: getElementValue("property_gallery"),
       property_files: getElementValue("property_attachments"),
       property_video_url: getElementValue("property_video_url"),
-      property_features: getElementValue("property_features"),
+      property_features: getPropertyFeaturesFromForm(),
       agent: choosedAgent,
       lat: lat,
       lng: lng,
@@ -640,10 +659,10 @@ function submitPreprocessData(attributes) {
 }
 
 function featureExists(feature, database) {
-  const featureExists = database.find(
-    item => item.name.toLowerCase() === feature.toLowerCase()
+  const featureExists = database.findIndex(
+    item => item.toLowerCase() === feature.toLowerCase()
   );
-  return featureExists ? featureExists.id : null;
+  return featureExists;
 }
 
 function insertMissingTaxonomy(data) {

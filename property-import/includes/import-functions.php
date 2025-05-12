@@ -91,7 +91,8 @@ function import_property_to_wordpress($property_data)
     'property-label' => $property_data['property_label'],
     'property-city' => $property_data['property_city'],
     'property-state' => $property_data['property_district'],
-    'property-neighborhood' => $property_data['property_neighborhood']
+    'property-neighborhood' => $property_data['property_neighborhood'],
+    'property-feature' => $property_data['property_features']
   );
 
   foreach ($taxonomies as $taxonomy => $value) {
