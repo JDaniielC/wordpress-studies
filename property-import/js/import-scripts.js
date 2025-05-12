@@ -126,6 +126,23 @@ function checkXmlFormat(xmlDoc) {
   return false;
 }
 
+function getPropertyFeatures(propertyFeatures) {
+  if (!propertyFeatures) {
+    return [];
+  }
+  if (propertyFeatures.includes("<feature>")) {
+    const features = Array.from(propertyFeatures.getElementsByTagName("feature"));
+    if (features.length)
+      return features.map((feature) => feature.textContent.trim());
+    return []
+  } else if (propertyFeatures.includes(";")) {
+    return propertyFeatures.split(";").map((feature) => feature.trim());
+  } else if (Array.isArray(propertyFeatures)) {
+    return propertyFeatures.map((feature) => feature.trim());
+  }
+  return [];
+}
+
 function convertXmlToJson(xmlData) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlData, "text/xml");
@@ -141,10 +158,6 @@ function convertXmlToJson(xmlData) {
   }
 
   const properties = [];
-
-  function getPropertyFeatures(propertyFeatures) {
-    return propertyFeatures.split(",").map((feature) => feature.trim());
-  }
 
   const rows = xmlDoc.getElementsByTagName("Row");
   for (const property of rows) {
@@ -249,7 +262,7 @@ function formatJsonData(jsonData) {
       property_files: String(property.property_files) || "",
       property_video_url:
         transformYoutubeUrl(String(property.property_video_url)) || "",
-      property_features: property.property_features?.split(",") || [],
+      property_features: getPropertyFeatures(property.property_features),
       agent: String(property.agent) || "",
     })),
   };
@@ -281,16 +294,20 @@ function readFile(data, fileType) {
 }
 
 function getPropertyFeatureIds() {
-  const propertyFeaturesInputs = document.querySelectorAll(".g5ere__sf-feature");
-  propertyFeaturesInputs.forEach((feature) => {
-    const featureId = feature.querySelector("input").id;
-    const featureName = feature.querySelector("label").textContent;
-    if (featureId) {
-      propertyFeatureIds.push({
-        id: featureId,
-        name: featureName,
-      });
-    }
+  const featureField = document.querySelectorAll(".property-fields.property-feature.row");
+  featureField.forEach((field) => {
+    const propertyFeaturesInputs = field.querySelectorAll(".custom-control.custom-checkbox");
+    propertyFeaturesInputs.forEach((feature) => {
+      const featureId = feature.querySelector("input").id;
+      const regexExpression = /[\t\n]/g
+      const featureName = feature.querySelector("label").textContent;
+      if (featureId) {
+        propertyFeatureIds.push({
+          id: featureId,
+          name: featureName.replace(regexExpression, "").trim().toLowerCase(),
+        });
+      }
+    });
   });
 
   return propertyFeatureIds;
@@ -327,7 +344,10 @@ function setMapLocation(propertyAddress) {
 
 function setPropertyFeatures(propertyFeatures) {
   const transformedFeatures = propertyFeatures.map((feature) => {
-    return propertyFeatureIds.find((f) => f.name === feature)?.id;
+    const featureId = propertyFeatureIds.find(
+      (f) => f.name.toLowerCase() === feature.toLowerCase()
+    )?.id;
+    return featureId || "";
   });
   transformedFeatures.forEach((feature) => {
     const featureElement = document.getElementById(feature);
@@ -420,13 +440,7 @@ function selectProperty(propertyData) {
     }
   });
 
-  const featuresArray = propertyData.property_features;
-  featuresArray.forEach((feature) => {
-    const featureElement = document.getElementById(feature);
-    if (featureElement) {
-      featureElement.checked = true;
-    }
-  });
+  setPropertyFeatures(propertyData.property_features);
 }
 
 function checkJsonData(jsonData) {
@@ -637,10 +651,9 @@ function insertMissingTaxonomy(data) {
     { key: "property_type", set: new Set(), db: propertyTypeDB },
     { key: "property_status", set: new Set(), db: propertyStatusDB },
     { key: "property_label", set: new Set(), db: propertyLabelDB },
-    { key: "property_feature", set: new Set(), db: propertyFeatureDB },
+    { key: "property_features", set: new Set(), db: propertyFeatureDB },
   ];
 
-  // Filtra os dados primeiro para remover propriedades com valores null
   const filteredData = data.filter(property => {
     return attributes.every(attr => {
       const value = property[attr.key];
@@ -650,7 +663,13 @@ function insertMissingTaxonomy(data) {
 
   filteredData.forEach((property) => {
     attributes.forEach((attr) => {
-      if (property[attr.key]) {
+      if (attr.key == "property_features") {
+        if (Array.isArray(property[attr.key])) {
+          property[attr.key].forEach(feature => {
+            attr.set.add(feature);
+          });
+        }
+      } else if (property[attr.key]) {
         attr.set.add(property[attr.key]);
       }
     });
@@ -838,6 +857,7 @@ document.addEventListener("DOMContentLoaded", function () {
             property_bedrooms: 2,
             property_garage: 1,
             property_garage_size: 20,
+            property_features: ["Feature 1", "Feature 2", "Feature 3"],
           },
         ],
       };
@@ -898,6 +918,11 @@ document.addEventListener("DOMContentLoaded", function () {
     <property_bedrooms>2</property_bedrooms>
     <property_garage>1</property_garage>
     <property_garage_size>20</property_garage_size>
+    <property_features>
+      <feature>Feature 1</feature>
+      <feature>Feature 2</feature>
+      <feature>Feature 3</feature>
+    </property_features>
   </Row>
 </Properties>`;
 
