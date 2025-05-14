@@ -89,7 +89,7 @@ $hide_property_fields = array(
       "property_bedrooms": number,
       "property_garage": number,
       "property_garage_size": number
-      "property_features": array/string
+      "property_feature": array/string
     }
   ]
 }
@@ -125,11 +125,11 @@ $hide_property_fields = array(
     &lt;property_bedrooms&gt;2&lt;/property_bedrooms&gt;        &lt;!-- Number of bedrooms --&gt;
     &lt;property_garage&gt;1&lt;/property_garage&gt;            &lt;!-- Number of garage spaces --&gt;
     &lt;property_garage_size&gt;20&lt;/property_garage_size&gt;  &lt;!-- Garage size in m² --&gt;
-    &lt;property_features&gt;
+    &lt;property_feature&gt;
       &lt;feature&gt;Feature 1&lt;/feature&gt;
       &lt;feature&gt;Feature 2&lt;/feature&gt;
       &lt;feature&gt;Feature 3&lt;/feature&gt;
-    &lt;/property_features&gt;
+    &lt;/property_feature&gt;
   &lt;/Row&gt;
 &lt;/Properties&gt;
     </pre>
@@ -216,7 +216,7 @@ $hide_property_fields = array(
       value="<?php esc_attr_e('Import Property', 'g5-ere'); ?>" />
   </div>
 
-  <script src="<?php echo get_template_directory_uri(); ?>/templates/property-import/js/import-scripts.js"></script>
+  <script type="module" src="<?php echo get_template_directory_uri(); ?>/templates/property-import/js/import-scripts.js"></script>
 
   <script>
     var propertyIdsDB = <?php echo json_encode(array_map('strval', $property_ids_db)); ?>;

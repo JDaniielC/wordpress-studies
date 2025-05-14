@@ -96,8 +96,8 @@ export function convertXmlToJson(xmlData) {
         .filter(Boolean),
       property_files:
         getValue("Linkdaplanta") || getValue("property_files") || "",
-      property_features: getPropertyFeatures(
-        getValue("Features") || getValue("property_features") || ""
+      property_feature: getPropertyFeatures(
+        getValue("Features") || getValue("property_feature") || ""
       ),
     };
     properties.push(propertyData);
@@ -134,7 +134,7 @@ export function formatJsonData(jsonData) {
       property_files: String(property.property_files) || "",
       property_video_url:
         transformYoutubeUrl(String(property.property_video_url)) || "",
-      property_features: getPropertyFeatures(property.property_features),
+      property_feature: getPropertyFeatures(property.property_feature),
       agent: String(property.agent) || "",
     })),
   };
@@ -211,7 +211,7 @@ export function selectProperty(propertyData) {
     }
   });
 
-  setPropertyFeatures(propertyData.property_features, propertyFeatureIds);
+  setPropertyFeatures(propertyData.property_feature, propertyFeatureIds);
 }
 
 export function setPropertyData(choosedAgent = "") {
@@ -265,7 +265,7 @@ export function setPropertyData(choosedAgent = "") {
     property_images: getElementValue("property_gallery"),
     property_files: getElementValue("property_attachments"),
     property_video_url: getElementValue("property_video_url"),
-    property_features: getPropertyFeaturesFromForm(),
+    property_feature: getPropertyFeaturesFromForm(),
     agent: choosedAgent,
     lat: lat,
     lng: lng,

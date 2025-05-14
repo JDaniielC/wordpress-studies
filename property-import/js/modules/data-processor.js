@@ -1,5 +1,5 @@
 import { REQUIRED_FIELD_TYPES, TAXONOMY_ATTRIBUTES } from './constants.js';
-import { featureExists } from './utils.js';
+import { attrExists } from './utils.js';
 
 export function checkXmlFormat(xmlDoc) {
   // Verify if XML has correct format
@@ -89,8 +89,8 @@ export function checkJsonData(jsonData) {
 
 export function insertMissingTaxonomy(data) {
   const filteredData = data.filter(property => {
-    if (property.property_features) {
-      return Array.isArray(property.property_features) && property.property_features.length > 0;
+    if (property.property_feature) {
+      return Array.isArray(property.property_feature) && property.property_feature.length > 0;
     }
     return TAXONOMY_ATTRIBUTES.every(attr => {
       const value = property[attr.key];
@@ -104,7 +104,7 @@ export function insertMissingTaxonomy(data) {
       const verifiedValue = (
         value && value !== "" && value !== null && value !== undefined
       );
-      if (attr.key == "property_features") {
+      if (attr.key == "property_feature") {
         if (Array.isArray(value)) {
           value.forEach(feature => {
             attr.set.add(feature);
@@ -122,9 +122,9 @@ export function insertMissingTaxonomy(data) {
       const missing = Array.from(attr.set).filter((value) => {
         const verifiedValue = (
           value && value !== "" && value !== null && value !== 'null'
-        );
-        const featureId = featureExists(value, attr.db);
-        return verifiedValue && !featureId;
+        ); 
+        const attrAlreadyExists = attrExists(value, attr.db);
+        return verifiedValue && !attrAlreadyExists;
       });
       if (missing.length > 0) {
         preprocessAttributes[attr.key] = missing;

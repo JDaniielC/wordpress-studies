@@ -37,7 +37,7 @@ export const TAXONOMY_ATTRIBUTES = [
   { key: "property_type", set: new Set(), db: propertyTypeDB },
   { key: "property_status", set: new Set(), db: propertyStatusDB },
   { key: "property_label", set: new Set(), db: propertyLabelDB },
-  { key: "property_features", set: new Set(), db: propertyFeatureDB },
+  { key: "property_feature", set: new Set(), db: propertyFeatureDB },
 ];
 
 // Example data for testing
@@ -71,7 +71,7 @@ export const EXAMPLE_DATA_JSON = {
       property_bedrooms: 2,
       property_garage: 1,
       property_garage_size: 20,
-      property_features: ["Feature 1", "Feature 2", "Feature 3"],
+      property_feature: ["Feature 1", "Feature 2", "Feature 3"],
     },
   ],
 };
@@ -103,10 +103,10 @@ export const EXAMPLE_DATA_XML = `
     <property_bedrooms>2</property_bedrooms>
     <property_garage>1</property_garage>
     <property_garage_size>20</property_garage_size>
-    <property_features>
+    <property_feature>
       <feature>Feature 1</feature>
       <feature>Feature 2</feature>
       <feature>Feature 3</feature>
-    </property_features>
+    </property_feature>
   </Row>
 </Properties>`;

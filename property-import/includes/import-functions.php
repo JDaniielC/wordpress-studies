@@ -92,7 +92,7 @@ function import_property_to_wordpress($property_data)
     'property-city' => $property_data['property_city'],
     'property-state' => $property_data['property_district'],
     'property-neighborhood' => $property_data['property_neighborhood'],
-    'property-feature' => $property_data['property_features']
+    'property-feature' => $property_data['property_feature']
   );
 
   foreach ($taxonomies as $taxonomy => $value) {
@@ -171,11 +171,11 @@ function get_all_property_taxonomy_from_database($property_taxonomy)
 }
 
 /**
- * Insere termos ausentes em uma taxonomia
+ * insert missing taxonomy
  * 
- * @param string $property_taxonomy Nome da taxonomia
- * @param array $data Array de strings contendo os nomes dos termos criados
- * @return int Quantidade de termos criados
+ * @param string $property_taxonomy taxonomy name
+ * @param array $data array of strings containing the terms names
+ * @return int quantity of terms created
  */
 function insert_missing_taxonomy($property_taxonomy, $data)
 {

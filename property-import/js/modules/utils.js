@@ -93,10 +93,10 @@ export function getPropertyFeatures(propertyFeatures) {
   return [];
 }
 
-export function featureExists(feature, database) {
+export function attrExists(feature, database) {
   return database.findIndex(
     item => item.toLowerCase() === feature.toLowerCase()
-  );
+  ) !== -1;
 }
 
 export function getSlug(value) {
