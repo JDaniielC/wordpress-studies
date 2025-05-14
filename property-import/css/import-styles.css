@@ -77,6 +77,10 @@
   color: white;
 }
 
+#property_agent_selection {
+  margin: 1rem 0;
+}
+
 .property-preview {
   margin: 15px 0;
   padding: 15px;
