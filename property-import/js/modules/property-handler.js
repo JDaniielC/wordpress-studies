@@ -16,6 +16,8 @@ import {
 import { getLatLong } from "./utils.js";
 import { checkXmlFormat } from "./data-processor.js";
 
+let currentSelectedPropertyDataFromFile = null;
+
 export function convertXmlToJson(xmlData) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlData, "text/xml");
@@ -130,7 +132,7 @@ export function formatJsonData(jsonData) {
       property_garage_size: parseFloat(property.property_garage_size) || 0,
       property_description:
         formatDescription(String(property.property_description)) || "",
-      property_images: String(property.property_images) || "",
+      property_images: Array.isArray(property.property_images) ? property.property_images : (String(property.property_images).split(',').map(s => s.trim()).filter(Boolean)),
       property_files: String(property.property_files) || "",
       property_video_url:
         transformYoutubeUrl(String(property.property_video_url)) || "",
@@ -142,6 +144,7 @@ export function formatJsonData(jsonData) {
 }
 
 export function selectProperty(propertyData) {
+  currentSelectedPropertyDataFromFile = propertyData;
   const buttons = document.getElementsByClassName("property-select-btn");
   Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
   event?.target?.classList.add("selected");
@@ -262,7 +265,7 @@ export function setPropertyData(choosedAgent = "") {
     property_district: getOptionLabel("administrative_area_level_1"),
     property_neighborhood: getOptionLabel("neighborhood"),
     property_zip: getElementValue("property_zip"),
-    property_images: getElementValue("property_gallery"),
+    property_images: currentSelectedPropertyDataFromFile ? currentSelectedPropertyDataFromFile.property_images : [],
     property_files: getElementValue("property_attachments"),
     property_video_url: getElementValue("property_video_url"),
     property_feature: getPropertyFeaturesFromForm(),

@@ -6,7 +6,7 @@
 
 function import_property_to_wordpress($property_data)
 {
-  error_log('Iniciando importação de propriedade: ');
+  error_log('[IMPORTER] Iniciando importação. Dados recebidos: ' . print_r($property_data, true));
 
   // Create post array
   $post_data = array(
@@ -101,16 +101,67 @@ function import_property_to_wordpress($property_data)
     }
   }
 
-  // Handle featured image if images are provided
   if (!empty($property_data['property_images'])) {
-    $images = explode(',', $property_data['property_images']);
-    if (!empty($images[0])) {
-      // Set the first image as featured image
-      $featured_image_id = ere_get_attachment_id($images[0]);
-      if ($featured_image_id) {
-        set_post_thumbnail($post_id, $featured_image_id);
+    $image_urls_input = $property_data['property_images'];
+    $image_urls = array();
+
+    if (is_array($image_urls_input)) {
+      $image_urls = $image_urls_input;
+    } elseif (is_string($image_urls_input)) {
+      $image_urls = explode(',', $image_urls_input);
+    } else {
+      error_log('property_images não é nem array nem string. Tipo: ' . gettype($image_urls_input));
+    }
+
+    $attachment_ids = array();
+    $featured_image_set = false;
+
+    // Ensure ABSPATH is defined
+    if (!defined('ABSPATH')) {
+      define('ABSPATH', dirname(__FILE__) . '/'); // Adjust path as needed if not in root
+    }
+
+    foreach ($image_urls as $index => $image_url) {
+      $image_url = trim($image_url);
+      if (empty($image_url)) {
+        error_log('URL da imagem vazia, pulando.');
+        continue;
+      }
+
+      // Sideload the image
+      // Need to require files for media_sideload_image
+      if (!function_exists('media_sideload_image')) {
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+      }
+      
+      // Sanitize file name for the image title
+      $image_title = sanitize_file_name($property_data['property_title'] . ' - Image ' . ($index + 1));
+      $image_id = media_sideload_image($image_url, $post_id, $image_title, 'id');
+
+      if (!is_wp_error($image_id)) {
+        $attachment_ids[] = $image_id;
+        if (!$featured_image_set) {
+          set_post_thumbnail($post_id, $image_id);
+          $featured_image_set = true;
+        }
+      } else {
+        error_log('Erro ao fazer sideload da imagem ' . $image_url . ': ' . $image_id->get_error_message());
       }
     }
+    error_log('<<< Bloco de processamento de imagens FINALIZADO. IDs de anexos coletados: ' . print_r($attachment_ids, true));
+
+    // Store all attachment IDs for gallery or other uses
+    if (!empty($attachment_ids)) {
+      update_post_meta($post_id, ERE_METABOX_PREFIX . 'property_images', implode('|', $attachment_ids));
+    } else {
+      // If all images failed to import, clear the meta field
+      delete_post_meta($post_id, ERE_METABOX_PREFIX . 'property_images');
+    }
+  } else {
+    // Clear the meta field if no images are provided in the input data
+    delete_post_meta($post_id, ERE_METABOX_PREFIX . 'property_images');
   }
 
   return array(
@@ -194,48 +245,6 @@ function insert_missing_taxonomy($property_taxonomy, $data)
   }
 
   return count($terms);
-}
-
-/**
- * Register an external image in the WordPress database
- * 
- * @param string $image_url The URL of the image
- * @param string $image_title The title of the image
- * @return void
- */
-function register_external_image($image_url, $image_title)
-{
-  if (empty($image_url) || empty($image_title)) {
-    return;
-  }
-
-  $attachment = array(
-    'post_title'     => $image_title,
-    'post_content'   => '',
-    'post_status'    => 'inherit',
-    'post_mime_type' => 'image/jpeg',
-    'post_type'      => 'attachment',
-    'guid'           => $image_url,
-  );
-
-  $attach_id = wp_insert_post($attachment);
-
-  if (is_wp_error($attach_id)) {
-    echo 'Erro ao criar attachment: ' . $attach_id->get_error_message();
-    return;
-  }
-
-  update_post_meta($attach_id, '_wp_attached_file', basename(parse_url($image_url, PHP_URL_PATH)));
-
-  update_post_meta($attach_id, '_wp_attachment_metadata', array(
-    'width'  => 1200,
-    'height' => 800,
-    'file'   => basename(parse_url($image_url, PHP_URL_PATH)),
-    'sizes'  => array(),
-    'image_meta' => array(),
-  ));
-
-  echo "Imagem externa registrada com ID: $attach_id";
 }
 
 /**
