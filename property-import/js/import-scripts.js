@@ -1,5 +1,5 @@
 import { insertMissingTaxonomy } from './modules/data-processor.js';
-import { selectProperty, setPropertyData, importSelectedProperty } from './modules/property-handler.js';
+import { setPropertyData, importSelectedProperty } from './modules/property-handler.js';
 import { renderPropertyButtons, togglePropertySelection, populateAgentOptions } from './modules/dom-handlers.js';
 import { EXAMPLE_DATA_JSON, EXAMPLE_DATA_XML } from './modules/constants.js';
 import { readFile } from './modules/file-handler.js';
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("import-selected-property")
     .addEventListener("click", function () {
-      renderPropertyButtons(currentData, selectProperty);
+      renderPropertyButtons(currentData);
       populateAgentOptions(agentsDB);
       handleAgentSelection();
     });
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "#properties_selection .row-selector"
       );
       if (buttonsWasRendered) {
-        renderPropertyButtons(currentData, selectProperty);
+        renderPropertyButtons(currentData);
       }
     });
 });

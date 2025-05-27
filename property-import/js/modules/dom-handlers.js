@@ -109,7 +109,7 @@ export function populateAgentOptions(agentsDB) {
   }
 }
 
-export function renderPropertyButtons(currentData, selectProperty) {
+export function renderPropertyButtons(currentData) {
   const buttonSection = document.querySelector("#properties_selection");
   buttonSection.innerHTML = "";
   const selectorDiv = document.createElement("div");
@@ -147,3 +147,139 @@ export function togglePropertySelection() {
     propertySelection.style.display = "none";
   }
 } 
+
+export function selectProperty(propertyData) {
+  const buttons = document.getElementsByClassName("property-select-btn");
+  Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
+  event?.target?.classList.add("selected");
+
+  document.getElementById("ere_property_form").style.display = "block";
+
+  togglePropertySelection();
+
+  const propertyAddress = `${propertyData.property_city}, ${propertyData.property_district}, ${propertyData.property_country}`;
+
+  setMapLocation(propertyAddress);
+  const propertyFeatureIds = getPropertyFeatureIds();
+
+  const fieldMapping = {
+    property_title: propertyData.property_title,
+    property_des: propertyData.property_description,
+    property_type: propertyData.property_type,
+    property_status: propertyData.property_status,
+    property_label: propertyData.property_label,
+    property_price_short: propertyData.property_price.toString(),
+    property_price_unit: "1",
+    address1: propertyAddress,
+    property_country: propertyData.property_country,
+    property_city: propertyData.property_city,
+    administrative_area_level_1: propertyData.property_district,
+    neighborhood: propertyData.property_neighborhood,
+    property_zip: propertyData.property_zip,
+    property_gallery: propertyData.property_images || "",
+    property_attachments: propertyData.property_files || "",
+    property_video_url: propertyData.property_video_url || "",
+    property_size: propertyData.property_area || "",
+    property_land: propertyData.property_land || "",
+    property_identity: propertyData.id || "",
+    property_rooms: propertyData.property_rooms || "",
+    property_bathrooms: propertyData.property_bathrooms || "",
+    property_bedrooms: propertyData.property_bedrooms || "",
+    property_garage: propertyData.property_garage || "",
+    property_garage_size: propertyData.property_garage_size || "",
+  };
+
+  Object.entries(fieldMapping).forEach(([fieldId, value]) => {
+    const element = document.getElementById(fieldId);
+    if (element) {
+      if (fieldId === "property_des") {
+        setIframeContent("property_des_ifr", "property_des", value);
+      } else if (element.tagName === "SELECT") {
+        const option = Array.from(element.options).find(
+          (opt) => opt.text.toLowerCase() === value.toLowerCase()
+        );
+        if (option) {
+          option.selected = true;
+          element.dispatchEvent(new Event("change"));
+        }
+      } else if (element.type === "checkbox") {
+        element.checked = value === "true";
+      } else {
+        if (fieldId === "property_attachments") {
+          if (!value) {
+            element.value = "";
+          } else {
+            element.value = value;
+          }
+        } else {
+          element.value = value;
+        }
+      }
+    }
+  });
+
+  setPropertyFeatures(propertyData.property_feature, propertyFeatureIds);
+  renderImageGallery(propertyData.property_images);
+}
+
+export function renderImageGallery(imageUrls) {
+  const galleryContainer = document.getElementById("image_gallery_container");
+  if (!galleryContainer) return;
+
+  galleryContainer.innerHTML = ""; // Clear previous gallery
+
+  if (!imageUrls || imageUrls.length === 0) {
+    galleryContainer.style.display = "none";
+    return;
+  }
+
+  galleryContainer.style.display = "block";
+  const title = document.createElement("h4");
+  title.textContent = "Select Images to Import:";
+  galleryContainer.appendChild(title);
+
+  const galleryDiv = document.createElement("div");
+  galleryDiv.className = "image-gallery";
+
+  imageUrls.forEach((url, index) => {
+    if (!url) return; // Skip if URL is empty or null
+
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "gallery-item";
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = `Property Image ${index + 1}`;
+    img.onerror = () => { // Handle broken images
+        itemDiv.style.display = 'none'; // Hide item if image fails to load
+    };
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = url;
+    checkbox.checked = true; // Default to selected
+    checkbox.id = `gallery_image_${index}`;
+
+    itemDiv.onclick = () => {
+      checkbox.checked = !checkbox.checked;
+    }
+
+    itemDiv.appendChild(img);
+    itemDiv.appendChild(checkbox);
+    galleryDiv.appendChild(itemDiv);
+  });
+
+  galleryContainer.appendChild(galleryDiv);
+}
+
+export function getSelectedImages() {
+  const selectedImages = [];
+  const galleryContainer = document.getElementById("image_gallery_container");
+  if (galleryContainer && galleryContainer.style.display !== "none") {
+    const checkboxes = galleryContainer.querySelectorAll('.gallery-item input[type="checkbox"]:checked');
+    checkboxes.forEach(checkbox => {
+      selectedImages.push(checkbox.value);
+    });
+  }
+  return selectedImages;
+}

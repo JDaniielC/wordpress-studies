@@ -258,13 +258,15 @@
   padding: 5px;
   background-color: #fff;
   width: auto;
-  position: relative
+  position: relative;
+  cursor: pointer;
 }
 
 .gallery-item img {
   max-height: 150px;
   object-fit: cover;
   margin-bottom: 5px;
+  pointer-events: none;
 }
 
 .gallery-item input[type="checkbox"] {

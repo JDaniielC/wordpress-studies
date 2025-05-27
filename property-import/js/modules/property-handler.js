@@ -5,18 +5,12 @@ import {
   formatDescription,
 } from "./utils.js";
 import {
-  getPropertyFeatureIds,
   getPropertyFeaturesFromForm,
   getIframeContent,
-  setMapLocation,
-  setPropertyFeatures,
-  togglePropertySelection,
-  setIframeContent
+  getSelectedImages
 } from "./dom-handlers.js";
 import { getLatLong } from "./utils.js";
 import { checkXmlFormat } from "./data-processor.js";
-
-let currentSelectedPropertyDataFromFile = null;
 
 export function convertXmlToJson(xmlData) {
   const parser = new DOMParser();
@@ -143,80 +137,6 @@ export function formatJsonData(jsonData) {
   return formattedData;
 }
 
-export function selectProperty(propertyData) {
-  currentSelectedPropertyDataFromFile = propertyData;
-  const buttons = document.getElementsByClassName("property-select-btn");
-  Array.from(buttons).forEach((btn) => btn.classList.remove("selected"));
-  event?.target?.classList.add("selected");
-
-  document.getElementById("ere_property_form").style.display = "block";
-
-  togglePropertySelection();
-
-  const propertyAddress = `${propertyData.property_city}, ${propertyData.property_district}, ${propertyData.property_country}`;
-
-  setMapLocation(propertyAddress);
-  const propertyFeatureIds = getPropertyFeatureIds();
-
-  const fieldMapping = {
-    property_title: propertyData.property_title,
-    property_des: propertyData.property_description,
-    property_type: propertyData.property_type,
-    property_status: propertyData.property_status,
-    property_label: propertyData.property_label,
-    property_price_short: propertyData.property_price.toString(),
-    property_price_unit: "1",
-    address1: propertyAddress,
-    property_country: propertyData.property_country,
-    property_city: propertyData.property_city,
-    administrative_area_level_1: propertyData.property_district,
-    neighborhood: propertyData.property_neighborhood,
-    property_zip: propertyData.property_zip,
-    property_gallery: propertyData.property_images || "",
-    property_attachments: propertyData.property_files || "",
-    property_video_url: propertyData.property_video_url || "",
-    property_size: propertyData.property_area || "",
-    property_land: propertyData.property_land || "",
-    property_identity: propertyData.id || "",
-    property_rooms: propertyData.property_rooms || "",
-    property_bathrooms: propertyData.property_bathrooms || "",
-    property_bedrooms: propertyData.property_bedrooms || "",
-    property_garage: propertyData.property_garage || "",
-    property_garage_size: propertyData.property_garage_size || "",
-  };
-
-  Object.entries(fieldMapping).forEach(([fieldId, value]) => {
-    const element = document.getElementById(fieldId);
-    if (element) {
-      if (fieldId === "property_des") {
-        setIframeContent("property_des_ifr", "property_des", value);
-      } else if (element.tagName === "SELECT") {
-        const option = Array.from(element.options).find(
-          (opt) => opt.text.toLowerCase() === value.toLowerCase()
-        );
-        if (option) {
-          option.selected = true;
-          element.dispatchEvent(new Event("change"));
-        }
-      } else if (element.type === "checkbox") {
-        element.checked = value === "true";
-      } else {
-        if (fieldId === "property_attachments") {
-          if (!value) {
-            element.value = "";
-          } else {
-            element.value = value;
-          }
-        } else {
-          element.value = value;
-        }
-      }
-    }
-  });
-
-  setPropertyFeatures(propertyData.property_feature, propertyFeatureIds);
-}
-
 export function setPropertyData(choosedAgent = "") {
   const getElementValue = (elementId) => {
     const element = document.getElementById(elementId);
@@ -265,7 +185,7 @@ export function setPropertyData(choosedAgent = "") {
     property_district: getOptionLabel("administrative_area_level_1"),
     property_neighborhood: getOptionLabel("neighborhood"),
     property_zip: getElementValue("property_zip"),
-    property_images: currentSelectedPropertyDataFromFile ? currentSelectedPropertyDataFromFile.property_images : [],
+    property_images: getSelectedImages(),
     property_files: getElementValue("property_attachments"),
     property_video_url: getElementValue("property_video_url"),
     property_feature: getPropertyFeaturesFromForm(),

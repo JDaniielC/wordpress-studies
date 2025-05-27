@@ -1,4 +1,5 @@
-import { convertXmlToJson, formatJsonData, selectProperty } from './property-handler.js';
+import { convertXmlToJson, formatJsonData } from './property-handler.js';
+import { selectProperty } from './dom-handlers.js';
 import { checkJsonData } from './data-processor.js';
 
 export function readFile(data, fileType) {
