@@ -12,9 +12,9 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 
 ### 2. Sistema de Imagens
 - [x] Identificar maneira eficiênte de upload de imagem
-- [ ] Popular o banco com as imagens
-- [ ] Implementar upload direto via URL
-- [ ] Otimizar processamento de imagens
+- [x] Popular o banco com as imagens
+- [x] Otimizar processamento de imagens
+- [x] Implementar galeria/seleção de imagens
 
 ### 3. Gestão de Taxonomias
 - [x] Pegar todas as taxonomias do banco
