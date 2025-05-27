@@ -202,6 +202,10 @@ $hide_property_fields = array(
     // G5ERE()->get_template("property/submit-property/media.php");
     ?> 
 
+    <div id="image_gallery_container">
+      <!-- Image gallery will be rendered here by JavaScript -->
+    </div>
+
     <div id="property_agent_selection">
       <label for="property_agent">Select Agent:</label>
       <select id="property_agent">
