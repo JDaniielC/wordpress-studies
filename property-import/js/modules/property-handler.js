@@ -152,7 +152,10 @@ export function setPropertyData(choosedAgent = "") {
 
   const getOptionLabel = (elementId) => {
     const element = document.getElementById(elementId);
-    const option = element ? element.options[element.selectedIndex].text : "";
+    if (!element) {
+      return "";
+    }
+    const option = element.options[element.selectedIndex]?.text || "";
     return getSlug(option);
   };
 
