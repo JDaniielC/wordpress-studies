@@ -10,7 +10,6 @@ import {
   getSelectedImages
 } from "./dom-handlers.js";
 import { getLatLong } from "./utils.js";
-import { checkXmlFormat } from "./data-processor.js";
 
 export function convertXmlToJson(xmlData) {
   const parser = new DOMParser();
@@ -19,11 +18,6 @@ export function convertXmlToJson(xmlData) {
   if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
     alert("XML inválido: Erro de parsing");
     return null;
-  }
-
-  if (checkXmlFormat(xmlDoc)) {
-    const jsonData = JSON.stringify(xmlDoc, null, 2);
-    return jsonData;
   }
 
   const properties = [];

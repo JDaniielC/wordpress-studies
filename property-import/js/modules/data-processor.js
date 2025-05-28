@@ -1,43 +1,6 @@
 import { REQUIRED_FIELD_TYPES, TAXONOMY_ATTRIBUTES } from './constants.js';
 import { attrExists } from './utils.js';
 
-export function checkXmlFormat(xmlDoc) {
-  // Verify if XML has correct format
-  const rows = xmlDoc.getElementsByTagName("Row");
-  if (!rows || rows.length === 0) {
-    alert('XML inválido: Nenhum elemento "Row" encontrado');
-    return false;
-  }
-
-  const tags = [
-    "id",
-    "property_type",
-    "property_status",
-    "property_label",
-    "property_area",
-    "property_land",
-    "property_price",
-    "property_address",
-    "property_country",
-    "property_district",
-    "property_city",
-    "property_neighborhood",
-    "property_zip",
-    "property_title",
-    "agent",
-    "property_description",
-  ];
-
-  let presentCount = 0;
-  for (const tag of tags) {
-    if (xmlDoc.getElementsByTagName(tag)[0]) {
-      presentCount++;
-    }
-  }
-
-  return presentCount > 3;
-}
-
 export function checkJsonData(jsonData) {
   if (!jsonData.Row || !Array.isArray(jsonData.Row)) {
     alert('Invalid JSON format: Missing or invalid "Row" array');

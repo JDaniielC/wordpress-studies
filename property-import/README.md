@@ -41,6 +41,9 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 ### 7. Responsividade
 - [x] Ajustar layout para mobile
 
+### 8. Importação
+- [ ] Subir mais de um imóvel por vez
+
 ## 🐛 Correções Necessárias
 
 <s>1. Botão "Hide selections" não está visível</s>
