@@ -2,6 +2,12 @@
 
 Sistema de importação de propriedades para WordPress, desenvolvido para gerenciar e automatizar o processo de importação de dados de imóveis.
 
+## Setup
+
+1. Ativar todos os plugins necessários vinculados ao plugin "Real Estate" como "G5".
+2. Extrair arquivos do zip para o diretório `homeid/templates/`
+3. Copiar o arquivo `import-functions.php` para o diretório `homeid/functions.php` do tema substituindo o arquivo existente.
+
 ## 🚀 Status do Projeto
 
 ### 1. Verificação de Propriedades
@@ -42,7 +48,7 @@ Sistema de importação de propriedades para WordPress, desenvolvido para gerenc
 - [x] Ajustar layout para mobile
 
 ### 8. Importação
-- [ ] Subir mais de um imóvel por vez
+- [x] Subir mais de um imóvel por vez
 
 ## 🐛 Correções Necessárias
 
