@@ -6,7 +6,7 @@
 
 function import_property_to_wordpress($property_data)
 {
-  error_log('[IMPORTER] Iniciando importação. Dados recebidos: ' . print_r($property_data, true));
+  error_log('[IMPORTER] Iniciando importação');
 
   // Create post array
   $post_data = array(
@@ -150,7 +150,6 @@ function import_property_to_wordpress($property_data)
         error_log('Erro ao fazer sideload da imagem ' . $image_url . ': ' . $image_id->get_error_message());
       }
     }
-    error_log('<<< Bloco de processamento de imagens FINALIZADO. IDs de anexos coletados: ' . print_r($attachment_ids, true));
 
     // Store all attachment IDs for gallery or other uses
     if (!empty($attachment_ids)) {
@@ -269,4 +268,38 @@ function get_all_agents_from_database()
   ");
 
   return array_combine($ids, $names);
+}
+
+// AJAX handler for batch property import
+add_action('wp_ajax_batch_import_property', 'batch_import_property_ajax_handler');
+
+function batch_import_property_ajax_handler() {
+  // Check for nonce security
+  check_ajax_referer('batch_import_nonce', 'security');
+
+  if (isset($_POST['property_data'])) {
+    $property_data_json = stripslashes($_POST['property_data']);
+    error_log('[BATCH IMPORTER] Received property_data JSON: ' . $property_data_json);
+    
+    $property_data = json_decode($property_data_json, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+      error_log('[BATCH IMPORTER] JSON Decode Error: ' . json_last_error_msg());
+      wp_send_json_error(array('message' => 'Invalid JSON data received: ' . json_last_error_msg()));
+      return;
+    }
+
+    error_log('[BATCH IMPORTER] Decoded property_data: ' . print_r($property_data, true));
+    $result = import_property_to_wordpress($property_data);
+
+    if ($result['success']) {
+      wp_send_json_success(array('post_id' => $result['post_id'], 'message' => $result['message']));
+    } else {
+      wp_send_json_error(array('message' => $result['message']));
+    }
+  } else {
+    wp_send_json_error(array('message' => 'No property data received.'));
+  }
+
+  wp_die(); // this is required to terminate immediately and return a proper response
 }

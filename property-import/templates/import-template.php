@@ -180,6 +180,9 @@ $hide_property_fields = array(
       <button id="import-selected-property" class="button btn-submit-property">
         Import Selected Property
       </button>
+      <button id="import-all-properties" class="button btn-submit-property" style="margin-left: 10px;">
+        Import All Properties
+      </button>
       <label for="show_only_new_properties" style="display:inline-flex;align-items:center;gap:5px;">
         <input type="checkbox" id="show_only_new_properties" checked />
         Show only new properties
@@ -189,6 +192,15 @@ $hide_property_fields = array(
     <button id="hide_properties_selection">Hide Properties Selection</button>
     <div id="properties_selection">
     </div>
+  </div>
+
+  <div id="import-progress" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; display: none;">
+    <h4>Import Progress</h4>
+    <div id="progress-bar-container" style="width: 100%; background-color: #eee; border-radius: 5px; margin-bottom: 10px;">
+      <div id="progress-bar" style="width: 0%; height: 20px; background-color: #4CAF50; border-radius: 5px; text-align: center; line-height: 20px; color: white;">0%</div>
+    </div>
+    <div id="progress-text">Starting import...</div>
+    <ul id="progress-log" style="list-style-type: none; padding-left: 0; max-height: 200px; overflow-y: auto;"></ul>
   </div>
 
   <div id="ere_property_form">
@@ -223,6 +235,8 @@ $hide_property_fields = array(
   <script type="module" src="<?php echo get_template_directory_uri(); ?>/templates/property-import/js/import-scripts.js"></script>
 
   <script>
+    var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+    var batch_import_nonce = "<?php echo wp_create_nonce('batch_import_nonce'); ?>";
     var propertyIdsDB = <?php echo json_encode(array_map('strval', $property_ids_db)); ?>;
     var propertyStateDB = <?php echo json_encode(array_map('strval', $property_state_db)); ?>;
     var propertyCityDB = <?php echo json_encode(array_map('strval', $property_city_db)); ?>;
